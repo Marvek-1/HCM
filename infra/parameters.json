@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "dev"
+    },
+    "containerAppsEnvironmentId": {
+      "value": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.App/managedEnvironments/<environment-name>"
+    },
+    "dockerImage": {
+      "value": "<dockerhub-username>/hcoms:latest"
+    },
+    "dockerUsername": {
+      "value": ""
+    },
+    "dbHost": {
+      "value": "<your-postgres-host>.postgres.database.azure.com"
+    },
+    "dbPort": {
+      "value": "5432"
+    },
+    "dbName": {
+      "value": "hcoms_db"
+    },
+    "dbUser": {
+      "value": "<your-db-user>"
+    },
+    "allowedEmailDomain": {
+      "value": "who.int"
+    },
+    "frontendUrl": {
+      "value": ""
+    },
+    "minReplicas": {
+      "value": 0
+    },
+    "maxReplicas": {
+      "value": 3
+    }
+  }
+}

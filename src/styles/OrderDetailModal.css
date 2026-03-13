@@ -1,0 +1,1125 @@
+/* OrderDetailModal.css */
+
+.order-detail-modal {
+  width: 700px;
+  max-width: 95vw;
+}
+
+.order-detail-modal.modal-lg {
+  width: 800px;
+}
+
+.order-detail-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-detail-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.info-card {
+  background: #F8FAFC;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.info-card-label {
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.info-card-value {
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.order-detail-pateo {
+  background: #FEF3C7;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.order-detail-pateo-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #92400E;
+}
+
+.order-detail-pateo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.order-detail-pateo-label {
+  font-size: 12px;
+  color: #92400E;
+}
+
+.order-detail-pateo-value {
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.order-detail-pateo-link {
+  font-weight: 500;
+  color: #009ADE;
+  cursor: pointer;
+}
+
+.order-detail-meta {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.order-detail-meta-label {
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.order-detail-meta-value {
+  color: #1A2B4A;
+}
+
+/* Items Section */
+.order-detail-items {
+  margin-bottom: 20px;
+}
+
+.order-detail-items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.order-detail-items-title {
+  margin: 0;
+  color: #1A2B4A;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.order-detail-items-container {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.order-detail-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-detail-item:last-of-type {
+  border-bottom: none;
+}
+
+.order-detail-item.editable {
+  background: #FFF;
+  margin: 8px;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.order-detail-item-name {
+  font-weight: 500;
+  color: #1A2B4A;
+}
+
+.order-detail-item-unit {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.item-totals {
+  text-align: right;
+}
+
+.order-detail-item-qty {
+  font-weight: 500;
+  color: #1A2B4A;
+  text-align: right;
+}
+
+.order-detail-item-price {
+  font-size: 13px;
+  color: #059669;
+  text-align: right;
+  font-weight: 600;
+}
+
+.order-detail-total {
+  padding: 12px 16px;
+  background: #F8FAFC;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.order-detail-total-value {
+  color: #059669;
+  font-size: 18px;
+}
+
+/* Edit Controls */
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.item-edit-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qty-input {
+  width: 70px;
+  padding: 6px 10px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #059669;
+  min-width: 80px;
+  text-align: right;
+}
+
+.btn-remove-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 14px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.btn-remove-item:hover {
+  opacity: 1;
+}
+
+/* Add Item Section */
+.add-item-section {
+  margin: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #CBD5E1;
+}
+
+.add-item-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.add-item-form .form-select {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Fulfillment Badges */
+.fulfillment-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.fulfillment-badge.fulfilled {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.fulfillment-badge.partial {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.fulfillment-badge.pending {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.fulfillment-badge.unavailable {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* Fulfillment Summary */
+.fulfillment-summary {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.fulfillment-summary h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #0369A1;
+}
+
+.fulfillment-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.fulfillment-stat {
+  text-align: center;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.fulfillment-stat.fulfilled {
+  background: #D1FAE5;
+}
+
+.fulfillment-stat.partial {
+  background: #FEF3C7;
+}
+
+.fulfillment-stat.pending {
+  background: #E0E7FF;
+}
+
+.fulfillment-stat.unavailable {
+  background: #FEE2E2;
+}
+
+.fulfillment-stat .stat-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.fulfillment-stat .stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.fulfillment-warehouse {
+  margin: 12px 0 0 0;
+  font-size: 13px;
+  color: #0369A1;
+}
+
+/* Warehouse Selection */
+.warehouse-selection {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.warehouse-selection h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #1A2B4A;
+}
+
+.warehouse-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 8px;
+  background: white;
+}
+
+.warehouse-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #64748B;
+}
+
+/* Timeline */
+.order-detail-timeline {
+  margin-bottom: 20px;
+}
+
+.order-detail-timeline-title {
+  margin: 0 0 12px;
+  color: #1A2B4A;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.order-detail-timeline-container {
+  background: #F8FAFC;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+/* Buttons */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.form-select {
+  padding: 8px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+/* Warehouse Fulfillments */
+.warehouse-fulfillments {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.warehouse-fulfillment-badge {
+  background: #E0E7FF;
+  color: #3730A3;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Fulfillment Totals */
+.fulfillment-totals {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #BAE6FD;
+  font-size: 13px;
+  color: #0369A1;
+}
+
+/* Split Fulfillment Form */
+.split-fulfillment-form {
+  margin-top: 12px;
+  padding: 12px;
+  background: #F0FDF4;
+  border: 1px solid #86EFAC;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.split-header {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #166534;
+}
+
+.split-warehouses {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.split-warehouse-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 4px;
+}
+
+.split-warehouse-row .warehouse-name {
+  flex: 1;
+  font-weight: 500;
+  color: #1A2B4A;
+}
+
+.split-warehouse-row .warehouse-available {
+  color: #64748B;
+  font-size: 12px;
+}
+
+.split-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+
+/* Shipments Section */
+.shipments-section {
+  margin-bottom: 20px;
+}
+
+.shipments-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #1A2B4A;
+  font-weight: 600;
+}
+
+.shipment-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.shipment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.shipment-warehouse {
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.shipment-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.shipment-status.pending {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.shipment-status.shipped {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.shipment-status.in.transit,
+.shipment-status.in-transit {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.shipment-status.delivered {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.shipment-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.shipment-items {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E2E8F0;
+  font-size: 13px;
+}
+
+.shipment-item-badge {
+  display: inline-block;
+  background: #E2E8F0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin: 4px 4px 0 0;
+  font-size: 12px;
+}
+
+.shipment-document {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #E2E8F0;
+}
+
+.shipment-document a {
+  color: #009ADE;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.shipment-document a:hover {
+  text-decoration: underline;
+}
+
+/* Create Shipment Section */
+.create-shipment-section {
+  margin-bottom: 20px;
+}
+
+.shipment-form {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.shipment-form h4 {
+  margin: 0 0 16px 0;
+  color: #1A2B4A;
+  font-size: 14px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-grid label {
+  display: block;
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.shipment-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Modification History */
+.modification-history {
+  margin-bottom: 20px;
+}
+
+.modification-history h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #1A2B4A;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modification-toggle {
+  background: none;
+  border: 1px solid #CBD5E1;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #64748B;
+}
+
+.modification-toggle:hover {
+  background: #F1F5F9;
+}
+
+.modification-list {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.modification-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #FCD34D;
+  font-size: 13px;
+}
+
+.modification-item:last-child {
+  border-bottom: none;
+}
+
+.modification-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.modification-user {
+  font-weight: 600;
+  color: #92400E;
+}
+
+.modification-date {
+  color: #B45309;
+  font-size: 12px;
+}
+
+.modification-action {
+  color: #78350F;
+}
+
+.modification-action .action-type {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.modification-values {
+  margin-top: 4px;
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.modification-values .old-value {
+  color: #DC2626;
+  text-decoration: line-through;
+}
+
+.modification-values .new-value {
+  color: #059669;
+  font-weight: 500;
+}
+
+.modification-reason {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #F8FAFC;
+  border-left: 3px solid #009ADE;
+  border-radius: 0 4px 4px 0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.modification-reason strong {
+  color: #1A2B4A;
+}
+
+/* Outbreak Badge */
+.outbreak-badge {
+  display: inline-block;
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+/* Action Section with multiple buttons */
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* Confirm Shipment Section */
+.confirm-shipment-section {
+  background: #F0FDF4;
+  border: 1px solid #86EFAC;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.confirm-shipment-section h4 {
+  margin: 0 0 12px 0;
+  color: #166534;
+  font-size: 14px;
+}
+
+.shipment-confirmation-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+/* Shipping Info Section (from Country Office) */
+.shipping-info-section {
+  background: #F0FDF4;
+  border: 1px solid #86EFAC;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.shipping-info-section h4 {
+  margin: 0 0 12px 0;
+  color: #166534;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.shipping-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.shipping-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shipping-info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.shipping-info-item label {
+  font-size: 11px;
+  color: #15803D;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.shipping-info-item span {
+  color: #1A2B4A;
+  font-size: 14px;
+}
+
+/* Pending Shipments Notice */
+.pending-shipments-notice {
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.pending-shipments-notice h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #92400E;
+  font-weight: 600;
+}
+
+.pending-warehouses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pending-warehouse-card {
+  background: white;
+  border: 1px solid #FCD34D;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.pending-warehouse-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pending-warehouse-header span {
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.pending-warehouse-items {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pending-item-badge {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Quantity Change Validation Styles */
+.order-detail-item.editable.qty-changed {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.order-detail-item.editable .item-edit-section {
+  flex: 1;
+}
+
+.order-detail-item.editable .item-edit-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.original-qty {
+  font-size: 12px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+.original-qty strong {
+  color: #1A2B4A;
+}
+
+/* Quantity Input States */
+.qty-input.qty-increased {
+  border-color: #F59E0B;
+  background: #FEF3C7;
+}
+
+.qty-input.qty-decreased {
+  border-color: #EF4444;
+  background: #FEE2E2;
+}
+
+/* Quantity Change Alert */
+.qty-change-alert {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.qty-change-alert.increased {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
+.qty-change-alert.decreased {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.qty-change-alert .alert-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Reason Input Section */
+.reason-input-section {
+  margin-top: 8px;
+}
+
+.reason-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1A2B4A;
+  margin-bottom: 4px;
+}
+
+.reason-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.reason-input:focus {
+  outline: none;
+  border-color: #009ADE;
+  box-shadow: 0 0 0 2px rgba(0, 154, 222, 0.1);
+}
+
+.reason-input.reason-required {
+  border-color: #EF4444;
+  background: #FEF2F2;
+}
+
+.reason-input.reason-required:focus {
+  border-color: #EF4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+.reason-input::placeholder {
+  color: #94A3B8;
+}
+
+/* Pending Counter in Order Details */
+.info-card .pending-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-top: 6px;
+  width: fit-content;
+}
+
+.info-card .pending-counter.duration-normal {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.info-card .pending-counter.duration-caution {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.info-card .pending-counter.duration-warning {
+  background: #FFEDD5;
+  color: #C2410C;
+}
+
+.info-card .pending-counter.duration-critical {
+  background: #FEE2E2;
+  color: #991B1B;
+  animation: pulse-critical 2s infinite;
+}
+
+@keyframes pulse-critical {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* View Only Notice (OSL Level 2) */
+.view-only-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #E0F2FE;
+  color: #0369A1;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ==================== ORDER CHAT SECTION ==================== */
+
+.order-detail-chat-section {
+  margin-top: 20px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chat-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(to right, #F0F9FF, #F8FAFC);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.chat-section-header:hover {
+  background: linear-gradient(to right, #E0F2FE, #F1F5F9);
+}
+
+.chat-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-section-title .chat-icon {
+  font-size: 18px;
+}
+
+.chat-section-title h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.chat-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: #009ADE;
+  color: white;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chat-toggle-btn {
+  background: none;
+  border: none;
+  color: #64748B;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.chat-toggle-btn:hover {
+  color: #009ADE;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .order-detail-info-grid,
+  .order-detail-pateo-grid,
+  .shipment-details,
+  .fulfillment-summary-grid,
+  .receipt-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-detail-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

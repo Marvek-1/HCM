@@ -1,0 +1,27 @@
+/* AddCommodityModal.css */
+
+.add-commodity-modal {
+  width: 500px;
+  max-width: calc(100vw - 32px);
+}
+
+.add-commodity-form {
+  padding: 24px;
+}
+
+.add-commodity-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .add-commodity-form {
+    padding: 16px;
+  }
+
+  .add-commodity-row {
+    grid-template-columns: 1fr;
+  }
+}

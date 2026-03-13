@@ -1,0 +1,228 @@
+/* DraftsView.css */
+
+.drafts-view {
+  padding: 0;
+}
+
+.drafts-loading {
+  text-align: center;
+  padding: 40px;
+  color: #64748B;
+}
+
+.drafts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.drafts-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drafts-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.drafts-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #64748B;
+}
+
+/* No Drafts State */
+.no-drafts {
+  text-align: center;
+  padding: 60px 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.no-drafts-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.no-drafts h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #1A2B4A;
+}
+
+.no-drafts p {
+  margin: 0;
+  color: #64748B;
+  font-size: 14px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Drafts List */
+.drafts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+/* Draft Card */
+.draft-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.draft-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.draft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.draft-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.priority-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.draft-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 8px;
+}
+
+.draft-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.info-label {
+  color: #64748B;
+}
+
+.info-value {
+  color: #1A2B4A;
+  font-weight: 500;
+}
+
+.draft-notes {
+  padding: 12px;
+  background: #FFFBEB;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.notes-label {
+  color: #92400E;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+.notes-text {
+  color: #78350F;
+}
+
+.draft-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.draft-timestamp {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.timestamp-label {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.timestamp-value {
+  color: #1A2B4A;
+  font-weight: 500;
+}
+
+.draft-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Info Box */
+.drafts-info {
+  margin-top: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #E0F2FE;
+  border-radius: 8px;
+}
+
+.drafts-info .info-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.drafts-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #0369A1;
+  line-height: 1.5;
+}
+
+/* Button Styles */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .drafts-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .drafts-list {
+    grid-template-columns: 1fr;
+  }
+
+  .draft-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .draft-actions {
+    justify-content: flex-end;
+  }
+}

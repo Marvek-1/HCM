@@ -1,0 +1,51 @@
+{
+  "name": "hcoms-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "client:dev": "vite",
+    "server:dev": "nodemon server/index.js",
+    "server:start": "node server/index.js",
+    "test:db": "node server/test-db.js",
+    "reset:passwords": "node server/reset-passwords.js",
+    "debug:password": "node server/debug-password.js",
+    "build": "vite build",
+    "start": "npm run server:start",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "framer-motion": "^12.36.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.577.0",
+    "morgan": "^1.10.1",
+    "nodemailer": "^6.9.9",
+    "pg": "^8.17.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.13.0",
+    "recharts": "^3.7.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "nodemon": "^3.1.11",
+    "vite": "^7.2.4"
+  }
+}

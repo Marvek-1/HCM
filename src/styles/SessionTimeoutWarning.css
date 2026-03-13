@@ -1,0 +1,134 @@
+/* Session Timeout Warning Modal */
+
+.timeout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.timeout-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: timeoutSlideIn 0.3s ease-out;
+}
+
+@keyframes timeoutSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.timeout-icon {
+  font-size: 48px;
+  color: #D97706;
+  margin-bottom: 12px;
+}
+
+.timeout-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1A2B4A;
+}
+
+.timeout-message {
+  margin: 0 0 24px;
+  font-size: 15px;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.timeout-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.timeout-seconds {
+  font-size: 56px;
+  font-weight: 700;
+  color: #DC2626;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeout-label {
+  font-size: 13px;
+  color: #94A3B8;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeout-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.timeout-btn-stay {
+  flex: 1;
+  padding: 12px 20px;
+  background: #009ADE;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.timeout-btn-stay:hover {
+  background: #0080b8;
+}
+
+.timeout-btn-logout {
+  flex: 1;
+  padding: 12px 20px;
+  background: #F1F5F9;
+  color: #64748B;
+  border: 2px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeout-btn-logout:hover {
+  background: #E2E8F0;
+  color: #1A2B4A;
+}
+
+@media (max-width: 480px) {
+  .timeout-modal {
+    padding: 28px 20px;
+  }
+
+  .timeout-actions {
+    flex-direction: column;
+  }
+
+  .timeout-seconds {
+    font-size: 44px;
+  }
+}

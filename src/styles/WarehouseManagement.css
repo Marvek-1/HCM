@@ -1,0 +1,422 @@
+/* Warehouse Management Styles */
+
+.warehouse-management {
+  padding: 20px;
+}
+
+.warehouse-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.warehouse-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #1A2B4A;
+}
+
+.warehouse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.warehouse-card {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.warehouse-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.warehouse-card.inactive {
+  opacity: 0.6;
+  background: #F8FAFC;
+}
+
+.warehouse-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.warehouse-code {
+  font-size: 20px;
+  font-weight: 700;
+  color: #009ADE;
+  font-family: 'Courier New', monospace;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #D1FAE5;
+  color: #047857;
+}
+
+.status-badge.inactive {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.warehouse-card-body h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #1A2B4A;
+}
+
+.warehouse-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.warehouse-info .info-label {
+  color: #64748B;
+  min-width: 100px;
+}
+
+.warehouse-info .info-value {
+  color: #1A2B4A;
+  font-weight: 500;
+}
+
+.warehouse-info .stock-count {
+  color: #009ADE;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.warehouse-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.warehouse-card-actions .btn {
+  flex: 1;
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+/* Modals */
+.warehouse-modal {
+  width: 600px;
+  max-width: 90vw;
+}
+
+.stock-modal {
+  width: 900px;
+  max-width: 95vw;
+  max-height: 90vh;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 13px;
+  color: #1A2B4A;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: #009ADE;
+  outline: none;
+}
+
+/* Stock Table */
+.stock-table {
+  overflow-x: auto;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.stock-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.stock-table thead {
+  background: #F8FAFC;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.stock-table th {
+  text-align: left;
+  padding: 12px;
+  font-weight: 600;
+  color: #64748B;
+  border-bottom: 2px solid #E2E8F0;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.stock-table th.text-right {
+  text-align: right;
+}
+
+.stock-table td {
+  padding: 12px;
+  border-bottom: 1px solid #E2E8F0;
+  color: #1A2B4A;
+}
+
+.stock-table td.text-right {
+  text-align: right;
+}
+
+.stock-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.stock-table tbody tr.out-of-stock {
+  background: #FEF2F2;
+}
+
+.category-badge {
+  background: #EFF6FF;
+  color: #1E40AF;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.quantity {
+  font-weight: 600;
+  color: #059669;
+}
+
+.quantity.zero {
+  color: #DC2626;
+}
+
+.stock-table tfoot tr.total-row {
+  background: #F1F5F9;
+  font-weight: 600;
+}
+
+.stock-table tfoot td {
+  padding: 14px 12px;
+  border-top: 2px solid #CBD5E1;
+  border-bottom: none;
+}
+
+/* Loading & Empty States */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748B;
+  font-size: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748B;
+  font-size: 16px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border: 2px dashed #E2E8F0;
+}
+
+/* Button Styles */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: #009ADE;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0080b8;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #E2E8F0;
+  color: #64748B;
+}
+
+.btn-secondary:hover {
+  background: #CBD5E1;
+}
+
+.btn-outline {
+  background: white;
+  color: #009ADE;
+  border: 1px solid #009ADE;
+}
+
+.btn-outline:hover {
+  background: #EFF6FF;
+}
+
+.btn-success {
+  background: #059669;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #047857;
+}
+
+.btn-warning {
+  background: #F59E0B;
+  color: white;
+}
+
+.btn-warning:hover {
+  background: #D97706;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #1A2B4A;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #94A3B8;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #64748B;
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .warehouse-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-modal,
+  .stock-modal {
+    width: 100%;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-card-actions {
+    flex-direction: column;
+  }
+
+  .warehouse-card-actions .btn {
+    width: 100%;
+  }
+}

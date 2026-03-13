@@ -1,0 +1,7 @@
+{
+  "name": "hcoms-server",
+  "version": "1.0.0",
+  "description": "HCOMS Backend API Server",
+  "main": "index.js",
+  "type": "commonjs"
+}
