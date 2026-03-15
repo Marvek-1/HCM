@@ -450,6 +450,54 @@ export const ordersAPI = {
 // Commodities API
 export const commoditiesAPI = {
   getAll: async ({ search, category, page, limit, simple } = {}) => {
+    // In dev mode, return local inventory data with images
+    if (DEV_AUTH_BYPASS) {
+      try {
+        const inventoryModule = await import('../data/inventory.json');
+        const inventory = inventoryModule.default || inventoryModule;
+        const { getProductImage } = await import('../data/productImages.js');
+        
+        // Add images to inventory items
+        let items = Array.isArray(inventory) ? inventory : [];
+        items = items.map(item => ({
+          ...item,
+          image: item.image || getProductImage({ name: item.name, category: item.category })
+        }));
+        
+        // Apply filters
+        if (search) {
+          const searchLower = search.toLowerCase();
+          items = items.filter(item =>
+            item.name?.toLowerCase().includes(searchLower) ||
+            item.category?.toLowerCase().includes(searchLower) ||
+            item.description?.toLowerCase().includes(searchLower)
+          );
+        }
+        
+        if (category) {
+          items = items.filter(item => item.category === category);
+        }
+        
+        // Apply pagination
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 100;
+        const start = (pageNum - 1) * limitNum;
+        const paginatedItems = items.slice(start, start + limitNum);
+        
+        return {
+          success: true,
+          data: {
+            commodities: paginatedItems,
+            total: items.length,
+            page: pageNum,
+            limit: limitNum
+          }
+        };
+      } catch (err) {
+        console.error('[v0] Error loading local inventory:', err);
+      }
+    }
+    
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (category) params.append('category', category);
@@ -462,6 +510,27 @@ export const commoditiesAPI = {
   },
 
   getById: async (id) => {
+    if (DEV_AUTH_BYPASS) {
+      try {
+        const inventoryModule = await import('../data/inventory.json');
+        const inventory = inventoryModule.default || inventoryModule;
+        const { getProductImage } = await import('../data/productImages.js');
+        
+        const item = Array.isArray(inventory) ? inventory.find(i => i.id === id) : null;
+        if (item) {
+          return {
+            success: true,
+            data: {
+              ...item,
+              image: item.image || getProductImage({ name: item.name, category: item.category })
+            }
+          };
+        }
+      } catch (err) {
+        console.error('[v0] Error loading commodity:', err);
+      }
+    }
+    
     return apiFetch(`/commodities/${id}`);
   },
 
@@ -502,6 +571,20 @@ export const commoditiesAPI = {
   },
 
   getCategories: async () => {
+    if (DEV_AUTH_BYPASS) {
+      try {
+        const inventoryModule = await import('../data/inventory.json');
+        const inventory = inventoryModule.default || inventoryModule;
+        const categories = [...new Set((Array.isArray(inventory) ? inventory : []).map(i => i.category))];
+        return {
+          success: true,
+          data: { categories }
+        };
+      } catch (err) {
+        console.error('[v0] Error loading categories:', err);
+      }
+    }
+    
     return apiFetch('/commodities/categories');
   },
 
@@ -524,6 +607,19 @@ export const commoditiesAPI = {
   },
 
   getWarehouses: async () => {
+    if (DEV_AUTH_BYPASS) {
+      return {
+        success: true,
+        data: {
+          warehouses: [
+            { id: 1, name: 'DKR Warehouse', code: 'DKR', location: 'Dakar, Senegal' },
+            { id: 2, name: 'NBO Warehouse', code: 'NBO', location: 'Nairobi, Kenya' },
+            { id: 3, name: 'JNB Warehouse', code: 'JNB', location: 'Johannesburg, South Africa' }
+          ]
+        }
+      };
+    }
+    
     return apiFetch('/commodities/warehouses');
   },
 };

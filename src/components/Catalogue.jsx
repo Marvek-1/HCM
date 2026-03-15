@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { useContinuousScroll } from '../hooks/useContinuousScroll';
 import { ChevronDown, ChevronUp, Pause, Play, Search, Grid3X3, ArrowLeft } from 'lucide-react';
+import { getProductImage } from '../data/productImages';
 import '../styles/Catalogue.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
@@ -312,24 +313,35 @@ function Catalogue() {
       ) : (
         <>
           <div className="catalogue-grid">
-            {items.map(item => (
-              <div key={item.id} className="catalogue-card" onClick={() => openDetail(item)}>
-                <div className="catalogue-card-image">
-                  <img src={getCategoryImage(item.category)} alt={item.name} className="catalogue-card-img" />
-                  <span className={`catalogue-card-badge ${item.availability || 'in_stock'}`}>
-                    {item.availability === 'in_stock' ? 'In Stock' : item.availability === 'low' ? 'Low Stock' : item.availability === 'critical' ? 'Critical' : 'Out of Stock'}
-                  </span>
-                </div>
-                <div className="catalogue-card-content">
-                  <h3 className="catalogue-card-title">{item.name}</h3>
-                  <p className="catalogue-card-category">{item.category}</p>
-                  <div className="catalogue-card-footer">
-                    <span className="catalogue-card-unit">{item.unit}</span>
-                    <span className="catalogue-card-price">${Number(item.price).toFixed(2)}</span>
+            {items.map(item => {
+              const productImage = item.image || getProductImage(item);
+              return (
+                <div key={item.id} className="catalogue-card" onClick={() => openDetail(item)}>
+                  <div className="catalogue-card-image">
+                    <img 
+                      src={productImage} 
+                      alt={item.name} 
+                      className="catalogue-card-img"
+                      crossOrigin="anonymous"
+                      onError={(e) => {
+                        e.target.src = getCategoryImage(item.category);
+                      }}
+                    />
+                    <span className={`catalogue-card-badge ${item.status || 'Normal'}`}>
+                      {item.status || 'Available'}
+                    </span>
+                  </div>
+                  <div className="catalogue-card-content">
+                    <h3 className="catalogue-card-title">{item.name}</h3>
+                    <p className="catalogue-card-category">{item.category}</p>
+                    <div className="catalogue-card-footer">
+                      <span className="catalogue-card-unit">{item.unit || 'Unit'}</span>
+                      <span className="catalogue-card-price">${Number(item.price).toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {pagination.totalPages > 1 && (
             <div className="catalogue-pagination">
@@ -349,7 +361,14 @@ function Catalogue() {
             </div>
             <div className="catalogue-detail-body">
               <div className="catalogue-detail-image">
-                <img src={getCategoryImage(selectedItem.category)} alt={selectedItem.name} />
+                <img 
+                  src={selectedItem.image || getProductImage(selectedItem)} 
+                  alt={selectedItem.name}
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    e.target.src = getCategoryImage(selectedItem.category);
+                  }}
+                />
               </div>
               <div className="catalogue-detail-grid">
                 <div className="catalogue-detail-item"><label>Category</label><span>{selectedItem.category}</span></div>
