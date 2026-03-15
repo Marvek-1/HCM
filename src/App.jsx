@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { authAPI, ordersAPI, commoditiesAPI } from './services/api';
+import './styles/ui-enhancements.css';
+import './styles/modern-ui.css';
+import './styles/unified-dashboard.css';
 import {
   LoginScreen,
   Header,

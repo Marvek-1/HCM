@@ -6,6 +6,7 @@ import StatCard from './StatCard';
 import { getRealItemImage } from '../lib/real-images';
 import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import '../styles/Dashboard.css';
+import '../styles/modern-ui.css';
 
 function Dashboard({ stats, role, orders, commodities = [], onViewOrder, currentUser }) {
   const [messageCounts, setMessageCounts] = useState({});
