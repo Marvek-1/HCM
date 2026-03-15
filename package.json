@@ -4,17 +4,19 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "client:dev": "vite",
+    "dev": "concurrently \"npm run server:dev\" \"npm run next:dev\"",
+    "next:dev": "next dev",
+    "next:build": "next build",
+    "next:start": "next start",
     "server:dev": "nodemon server/index.js",
     "server:start": "node server/index.js",
     "test:db": "node server/test-db.js",
     "reset:passwords": "node server/reset-passwords.js",
     "debug:password": "node server/debug-password.js",
-    "build": "vite build",
+    "build": "npm run next:build",
     "start": "npm run server:start",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -27,29 +29,28 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.577.0",
     "morgan": "^1.10.1",
+    "next": "^15.1.2",
     "nodemailer": "^6.9.9",
     "pg": "^8.17.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^7.13.0",
     "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^20.10.0",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.27",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "nodemon": "^3.1.11",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",
-    "vite": "^7.2.4"
+    "typescript": "^5.3.3"
   }
 }
