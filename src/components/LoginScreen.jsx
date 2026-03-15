@@ -5,13 +5,14 @@ import ForgotPasswordModal from './modals/ForgotPasswordModal';
 import '../styles/LoginScreen.css';
 
 const DEV_MODE = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+const UNLOCK_ROLES = import.meta.env.VITE_DEV_UNLOCK_ROLES === 'true';
 const TEST_ACCOUNTS = [
-  { email: 'super.admin@who.int', role: 'Super Admin' },
-  { email: 'admin.nigeria@who.int', role: 'Country Office' },
-  { email: 'lab.reviewer@who.int', role: 'Laboratory Team' },
-  { email: 'osl.admin@who.int', role: 'OSL Team' },
+  { email: 'super.admin@who.int', role: 'Super Admin', description: 'Full system access' },
+  { email: 'admin.nigeria@who.int', role: 'Country Office', description: 'Create & manage orders' },
+  { email: 'lab.reviewer@who.int', role: 'Laboratory Team', description: 'Review commodities' },
+  { email: 'osl.admin@who.int', role: 'OSL Team', description: 'Approve & allocate' },
 ];
-const TEST_PASSWORD = 'Password123';
+const TEST_PASSWORD = 'Password123!';
 
 function LoginScreen({ onLogin }) {
   const [email, setEmail] = useState(DEV_MODE ? TEST_ACCOUNTS[0].email : '');
@@ -117,27 +118,42 @@ function LoginScreen({ onLogin }) {
         </div>*/}
 
         {/* Dev Quick Login */}
-        {DEV_MODE ? (
-          <div style={{ marginTop: '16px', padding: '12px', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
-            <p style={{ fontSize: '11px', fontWeight: 600, color: '#0369a1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Quick Login (Dev Mode)</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {TEST_ACCOUNTS.map(acc => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => { setEmail(acc.email); setPassword(TEST_PASSWORD); }}
-                  style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #7dd3fc', background: email === acc.email ? '#0ea5e9' : '#fff', color: email === acc.email ? '#fff' : '#0369a1', cursor: 'pointer' }}
-                >
-                  {acc.role}
-                </button>
-              ))}
+        {DEV_MODE && UNLOCK_ROLES ? (
+          <div className="dev-mode-panel">
+            <div className="dev-mode-header">
+              <span className="dev-mode-badge">🧪 Development Mode</span>
+              <p className="dev-mode-subtitle">Pre-filled test credentials for testing</p>
+            </div>
+            <div className="dev-mode-content">
+              <div className="dev-mode-current">
+                <p className="dev-mode-label">Currently Selected:</p>
+                <p className="dev-mode-email">{email}</p>
+                <p className="dev-mode-password">Password: <code>{TEST_PASSWORD}</code></p>
+              </div>
+              <div className="dev-mode-divider"></div>
+              <div className="dev-mode-accounts">
+                <p className="dev-mode-label">Quick Select Test Accounts:</p>
+                <div className="dev-mode-buttons">
+                  {TEST_ACCOUNTS.map(acc => (
+                    <button
+                      key={acc.email}
+                      type="button"
+                      onClick={() => { setEmail(acc.email); setPassword(TEST_PASSWORD); }}
+                      className={`dev-mode-button ${email === acc.email ? 'active' : ''}`}
+                      title={acc.description}
+                    >
+                      <span className="dev-mode-role">{acc.role}</span>
+                      <span className="dev-mode-desc">{acc.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="dev-mode-footer">
+              <p className="dev-mode-warning">⚠️ This mode will be removed when proper role management is implemented</p>
             </div>
           </div>
-        ) : (
-          <div className="login-demo-note">
-            <p>Contact your administrator for account access.</p>
-          </div>
-        )}
+        ) : null}
       </div>
 
       {/* Forgot Password Modal */}
