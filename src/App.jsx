@@ -24,9 +24,17 @@ import useInactivityTimeout from './hooks/useInactivityTimeout';
 
 function App() {
   // Auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Auth state - TEMPORARILY DISABLED FOR DEVELOPMENT
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [currentUser, setCurrentUser] = useState({
+    id: 'mock-admin-id',
+    name: 'Admin User',
+    email: 'admin@hcoms.who.int',
+    role: 'Super Admin',
+    country: 'WHO Afro',
+    oslAdminLevel: 3
+  });
+  const [isLoading, _setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // App state
@@ -49,8 +57,9 @@ function App() {
   const [editingDraft, setEditingDraft] = useState(null);
 
   // Check authentication on mount
+  // Check authentication on mount - DISABLED
   useEffect(() => {
-    const checkAuth = async () => {
+    /*const checkAuth = async () => {
       if (authAPI.isAuthenticated()) {
         const storedUser = authAPI.getStoredUser();
         if (storedUser) {
@@ -60,7 +69,7 @@ function App() {
       }
       setIsLoading(false);
     };
-    checkAuth();
+    checkAuth();*/
   }, []);
 
   // Fetch data when logged in
@@ -103,11 +112,11 @@ function App() {
   }, [isLoggedIn, fetchData]);
 
   // Login handler
-  const handleLogin = (user) => {
-    setCurrentUser(user);
+  const handleLogin = () => {
+    /*setCurrentUser(user);
     setIsLoggedIn(true);
     setActiveTab('dashboard');
-    toast.success(`Welcome back, ${user.name}!`);
+    toast.success(`Welcome back, ${user.name}!`);*/
   };
 
   // Logout handler
@@ -139,7 +148,7 @@ function App() {
     }
   }, []);
 
-  const { showWarning, secondsLeft, stayLoggedIn } = useInactivityTimeout(isLoggedIn, handleTimeoutLogout);
+  const { showWarning, secondsLeft, stayLoggedIn } = useInactivityTimeout(false, handleTimeoutLogout);
 
   // Lab team forwards order to OSL
   const forwardToOSL = async (orderId, warehouseId) => {
@@ -443,9 +452,10 @@ function App() {
   }
 
   // Show login screen if not logged in
-  if (!isLoggedIn) {
+  // Show login screen if not logged in - DISABLED
+  /*if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
-  }
+  }*/
 
   const dashboardStats = getDashboardStats();
 
@@ -603,7 +613,7 @@ function App() {
             setCart([]);
           }}
           onSubmit={handleNewOrder}
-          onSaveDraft={(draft) => {
+          onSaveDraft={() => {
             // Draft saved - stay in modal for continued editing
           }}
         />

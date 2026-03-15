@@ -80,7 +80,7 @@ export const NAV_CATEGORIES = [
   }
 ];
 
-export const getNavItemsByRole = (role) => {
+export const getNavItems = (role) => {
   // Deep clone categories to filter items based on role
   const categories = JSON.parse(JSON.stringify(NAV_CATEGORIES));
 
