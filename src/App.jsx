@@ -20,6 +20,7 @@ import {
   ProfileSettings,
   ItemDetailView
 } from './components';
+import UnifiedLayout from './components/UnifiedLayout';
 import Loading from './components/Loading';
 import SessionTimeoutWarning from './components/SessionTimeoutWarning';
 import useInactivityTimeout from './hooks/useInactivityTimeout';
@@ -488,7 +489,7 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-[#f5f7fb] overflow-hidden">
-      {/* Header */}
+      {/* Header - Maintained */}
       <Header
         currentUser={currentUser}
         activeTab={activeTab}
@@ -516,23 +517,17 @@ function App() {
         }}
       />
 
-      {/* Main Body with Sidebar and Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <Sidebar
-          currentUser={currentUser}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onLogout={handleLogout}
-          onProfileSettings={() => setShowProfileSettings(true)}
-        />
-
-        {/* Scrollable Page Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar">
-          {isLoadingData ? (
-            <Loading message="Loading operational data..." />
-          ) : (
-            <div className="p-0">
+      {/* Unified Layout with Sidebar and Content */}
+      <UnifiedLayout 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab}
+        stats={stats}
+        currentUser={currentUser}
+      >
+        {isLoadingData ? (
+          <Loading message="Loading operational data..." />
+        ) : (
+          <div className="p-0">
               {(activeTab === 'dashboard' || activeTab === 'lab-dashboard') && (
                 <div className="p-8">
                   <Dashboard
@@ -627,8 +622,7 @@ function App() {
               )}
             </div>
           )}
-        </main>
-      </div>
+      </UnifiedLayout>
 
       {/* Modals remain appended to the end of the container */}
 

@@ -2,6 +2,7 @@
 export { default as LoginScreen } from './LoginScreen';
 export { default as Header } from './Header';
 export { default as Sidebar } from './Sidebar';
+export { default as UnifiedLayout } from './UnifiedLayout';
 export { default as Dashboard } from './Dashboard';
 export { default as StatCard } from './StatCard';
 export { default as TimelineItem } from './TimelineItem';
