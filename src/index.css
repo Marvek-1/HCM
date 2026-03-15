@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Import HCOMS Neumorphic Theme - Primary Theme System */
+@import "./styles/hcoms-neu.css";
+
 /* Global Reset & Base Styles */
 *,
 *::before,

@@ -4,7 +4,6 @@ import { getStatusStyle, getPriorityStyle, formatDateTime, getTimeElapsed, getPe
 import { chatAPI } from '../services/api';
 import { exportOrdersToCSV } from '../utils/exportHelpers';
 import '../styles/OrdersView.css';
-import '../styles/hcoms-neu.css';
 
 function OrdersView({ orders, role, onNewOrder, onViewOrder }) {
   const [filter, setFilter] = useState('all');

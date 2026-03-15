@@ -2,9 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { authAPI, ordersAPI, commoditiesAPI } from './services/api';
 import { preloadProductImages } from './data/productImages';
-import './styles/ui-enhancements.css';
-import './styles/modern-ui.css';
-import './styles/unified-dashboard.css';
 import {
   LoginScreen,
   Header,
@@ -41,6 +38,13 @@ const DEV_TEST_USER = {
 };
 
 function App() {
+  // Verify hcoms-neu theme is loaded
+  useEffect(() => {
+    const rootStyle = getComputedStyle(document.documentElement);
+    const neuBg = rootStyle.getPropertyValue('--neu-bg');
+    console.log('[v0] HCOMS Theme Loaded:', { neuBg, themeActive: !!neuBg });
+  }, []);
+
   // Auth state - TEMPORARILY DISABLED FOR DEVELOPMENT
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [currentUser, setCurrentUser] = useState({
