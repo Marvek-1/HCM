@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import { oslAPI, commoditiesAPI } from '../services/api';
 import { formatDateTime, formatDateRange } from '../utils/helpers';
 import '../styles/OSLOperations.css';
-import '../styles/hcoms-neu.css';
 
 function OSLOperations({ warehouses = [], oslAdminLevel }) {
   // OSL permission helpers

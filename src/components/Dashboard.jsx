@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { chatAPI } from '../services/api';
 import '../styles/Dashboard.css';
-import '../styles/modern-ui.css';
-import '../styles/hcoms-neu.css';
 
 function Dashboard({ stats, role, orders, commodities = [], onViewOrder, currentUser }) {
   const [messageCounts, setMessageCounts] = useState({});
