@@ -470,18 +470,12 @@ function OrdersView({ orders, role, onNewOrder, onViewOrder }) {
                     <td className="orders-table-items">{itemCount} item(s)</td>
                     <td className="orders-table-pateo">{order.pateo_ref}</td>
                     <td>
-                      <span 
-                        className="priority-badge"
-                        style={{ color: priorityStyle.color, background: priorityStyle.background }}
-                      >
+                      <span className={`priority-badge priority-${order.priority?.toLowerCase()}`}>
                         {order.priority}
                       </span>
                     </td>
                     <td>
-                      <span
-                        className="status-badge"
-                        style={{ color: statusStyle.color, background: statusStyle.background }}
-                      >
+                      <span className={`status-badge status-${order.status?.toLowerCase().replace(/\s+/g, '-')}`}>
                         {order.status}
                       </span>
                     </td>

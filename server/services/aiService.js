@@ -7,6 +7,21 @@ class AzureAIService {
   }
 
   async generateChatCompletion(messages, options = {}) {
+    // Graceful fallback when Azure OpenAI is not configured
+    if (!this.endpoint || !this.apiKey || !this.deploymentName) {
+      console.log('[AI Service] Not configured — returning fallback response');
+      return {
+        choices: [{
+          message: {
+            content: 'AI service not configured. Using signal-based intelligence.',
+            role: 'assistant',
+          },
+          finish_reason: 'stop',
+        }],
+        configured: false,
+      };
+    }
+
     try {
       const endpoint = this.endpoint.endsWith('/') ? this.endpoint.slice(0, -1) : this.endpoint;
       const url = `${endpoint}/openai/deployments/${this.deploymentName}/chat/completions?api-version=${this.apiVersion}`;
@@ -28,14 +43,37 @@ class AzureAIService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `Azure OpenAI request failed with status ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error(`[AI Service] API error: ${response.status}`);
+        // Fallback on API errors — never crash
+        return {
+          choices: [{
+            message: {
+              content: 'AI analysis temporarily unavailable. Using signal-based intelligence.',
+              role: 'assistant',
+            },
+            finish_reason: 'stop',
+          }],
+          configured: true,
+          error: errorData.error?.message || `Status ${response.status}`,
+        };
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Azure OpenAI Error:', error.message);
-      throw new Error(`Failed to generate AI completion: ${error.message}`);
+      console.error('[AI Service] Error:', error.message);
+      // Fallback on network errors — never crash
+      return {
+        choices: [{
+          message: {
+            content: 'AI service connection failed. Using signal-based intelligence.',
+            role: 'assistant',
+          },
+          finish_reason: 'stop',
+        }],
+        configured: true,
+        error: error.message,
+      };
     }
   }
 

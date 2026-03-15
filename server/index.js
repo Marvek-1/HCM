@@ -38,6 +38,11 @@ const chatRoutes = require('./routes/chat');
 const warehouseRoutes = require('./routes/warehouses');
 const aiRoutes = require('./routes/ai');
 const catalogRoutes = require('./catalog/routes');
+const signalRoutes = require('./routes/signals');
+const sessionRoutes = require('./routes/sessions');
+const assetRoutes = require('./routes/assets');
+const { initAuditTable } = require('./services/auditService');
+const { initIdempotencyTable } = require('./middleware/idempotency');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -52,7 +57,7 @@ app.use(cors({
     : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Idempotency-Key']
 }));
 
 // Request logging
@@ -78,6 +83,9 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/warehouses', warehouseRoutes);
 app.use('/api/catalog', catalogRoutes);
+app.use('/api/signals', signalRoutes);
+app.use('/api/sessions', sessionRoutes);
+app.use('/api/assets', assetRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
@@ -221,6 +229,11 @@ const startServer = async () => {
       await initializeDatabase();
       console.log('Skipping seed (set SEED_DB=true to seed on startup)');
     }
+
+    // Initialize pipeline tables (audit log, idempotency keys)
+    await initAuditTable().catch(err => console.warn('[Startup] Audit table init skipped:', err.message));
+    await initIdempotencyTable().catch(err => console.warn('[Startup] Idempotency table init skipped:', err.message));
+
     
     app.listen(PORT, () => {
       console.log('========================================');

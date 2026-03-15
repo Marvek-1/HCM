@@ -1,0 +1,86 @@
+/* Sidebar.css */
+
+.sidebar-container {
+  background: linear-gradient(180deg, #1A2B4A 0%, #009ADE 100%);
+  color: white;
+}
+
+.nav-menu {
+  padding-left: 20px; /* Space on the left so items don't touch the edge */
+  padding-right: 0;   /* Flush with the right edge */
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 24px 0 0 24px; /* Rounded on left, flat on right */
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.nav-item:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+  /* Active State with Bleeding Effect */
+.nav-item.active {
+  background-color: #f5f7fb; /* Matches the main content background */
+  color: #009ADE;
+  font-weight: 700;
+  /* Removed shadow to prevent clutter/lines on the left */
+}
+
+/* Pseudo-elements for the inverted curves (bleeding effect) */
+.nav-item.active::before,
+.nav-item.active::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  pointer-events: none;
+}
+
+/* The curve above the active item */
+.nav-item.active::before {
+  top: -24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: 0 12px 0 0 #f5f7fb; /* Uses box-shadow to paint the corner to match app bg */
+}
+
+/* The curve below the active item */
+.nav-item.active::after {
+  bottom: -24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -12px 0 0 #f5f7fb;
+}
+
+/* Icon colors */
+.nav-icon {
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+.nav-item.active .nav-icon {
+  color: #009ADE;
+}
+
+/* User profile button overriding */
+.profile-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

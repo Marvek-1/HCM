@@ -4,12 +4,10 @@ import { oslAPI, commoditiesAPI } from '../services/api';
 import { formatDateTime, formatDateRange } from '../utils/helpers';
 import '../styles/OSLOperations.css';
 
-const DEV_UNLOCK_ROLES = import.meta.env.VITE_DEV_UNLOCK_ROLES === 'true';
-
 function OSLOperations({ warehouses = [], oslAdminLevel }) {
   // OSL permission helpers
-  const canEdit = DEV_UNLOCK_ROLES || oslAdminLevel === 0 || oslAdminLevel === 1; // Level 0-1 can edit
-  const isViewOnly = !DEV_UNLOCK_ROLES && oslAdminLevel === 2; // Level 2 is view-only
+  const canEdit = oslAdminLevel === 0 || oslAdminLevel === 1; // Level 0-1 can edit
+  const isViewOnly = oslAdminLevel === 2; // Level 2 is view-only
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(false);
@@ -537,7 +535,7 @@ function OSLOperations({ warehouses = [], oslAdminLevel }) {
                 </select>
               </div>
               {canEdit && (
-                <button className="btn btn-primary" onClick={() => setShowMovementModal(true)}>
+                <button className="btn-primary" onClick={() => setShowMovementModal(true)}>
                   + Record Movement
                 </button>
               )}
@@ -635,10 +633,10 @@ function OSLOperations({ warehouses = [], oslAdminLevel }) {
               </div>
               {canEdit ? (
                 <div className="toolbar-actions">
-                  <button className="btn btn-secondary" onClick={() => setShowSupplierModal(true)}>
+                  <button className="btn-secondary" onClick={() => setShowSupplierModal(true)}>
                     + Add Supplier
                   </button>
-                  <button className="btn btn-primary" onClick={() => setShowPOModal(true)}>
+                  <button className="btn-primary" onClick={() => setShowPOModal(true)}>
                     + Create PO
                   </button>
                 </div>
@@ -788,9 +786,9 @@ function OSLOperations({ warehouses = [], oslAdminLevel }) {
                 />
               </div>
             </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowMovementModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleCreateMovement}>Record Movement</button>
+             <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowMovementModal(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleCreateMovement}>Record Movement</button>
             </div>
           </div>
         </div>

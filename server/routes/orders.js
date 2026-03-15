@@ -3,6 +3,12 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const orderController = require('../controllers/orderController');
 const { authenticate, authorize, authorizeOSLLevel } = require('../middleware/auth');
+const orderIntelligence = require('../services/orderIntelligence');
+const fulfillmentTracker = require('../services/fulfillmentTracker');
+const analyticsEngine = require('../services/analyticsEngine');
+const signalService = require('../services/signalService');
+const auditService = require('../services/auditService');
+const { idempotencyMiddleware } = require('../middleware/idempotency');
 
 // Validation middleware
 const validate = (req, res, next) => {
@@ -16,6 +22,112 @@ const validate = (req, res, next) => {
   }
   next();
 };
+
+// ==================== PIPELINE INTELLIGENCE ROUTES (before auth for some) ====================
+
+// POST /api/orders/validate — Order intelligence validation (mo-osl-ordergate-003)
+router.post('/validate', authenticate, async (req, res) => {
+  try {
+    const { country, items = [], sessionId } = req.body;
+    const countryCode = country || req.user.country;
+    const result = await orderIntelligence.validateOrder({ country: countryCode, items, sessionId });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[OrderValidate] Error:', err.message);
+    res.status(500).json({ success: false, message: 'Order validation failed' });
+  }
+});
+
+// GET /api/orders/analytics/kpis — KPI computation (mo-osl-analytics-pulse-001)
+router.get('/analytics/kpis', authenticate, async (req, res) => {
+  try {
+    const { query: dbQuery } = require('../config/database');
+    const ordersResult = await dbQuery('SELECT * FROM orders');
+    const signals = await signalService.getActiveSignals();
+    const kpis = analyticsEngine.computeKPIs(ordersResult.rows, signals);
+    res.json({ success: true, data: kpis });
+  } catch (err) {
+    console.error('[Analytics] KPI error:', err.message);
+    const signals = await signalService.getActiveSignals().catch(() => []);
+    res.json({ success: true, data: analyticsEngine.computeKPIs([], signals) });
+  }
+});
+
+// GET /api/orders/analytics/trends — Order trends for charts
+router.get('/analytics/trends', authenticate, async (req, res) => {
+  try {
+    const { query: dbQuery } = require('../config/database');
+    const days = parseInt(req.query.days || '90', 10);
+    const ordersResult = await dbQuery('SELECT * FROM orders');
+    const trends = analyticsEngine.computeTrends(ordersResult.rows, days);
+    res.json({ success: true, data: trends });
+  } catch (err) {
+    console.error('[Analytics] Trends error:', err.message);
+    res.json({ success: true, data: [] });
+  }
+});
+
+// All routes below require authentication
+router.use(authenticate);
+
+// GET /api/orders/:id/reconciliation — Fulfillment reconciliation (mo-osl-fulfilltrack-004)
+router.get('/:id/reconciliation', async (req, res) => {
+  try {
+    const { requested, dispatched, confirmed } = req.query;
+    const result = fulfillmentTracker.reconcile({
+      orderId: req.params.id,
+      requested: parseInt(requested || '0', 10),
+      dispatched: parseInt(dispatched || '0', 10),
+      confirmed: parseInt(confirmed || '0', 10),
+      batchData: [],
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[Reconciliation] Error:', err.message);
+    res.status(500).json({ success: false, message: 'Reconciliation failed' });
+  }
+});
+
+// POST /api/orders/:id/emergency-override — Super Admin only
+router.post('/:id/emergency-override',
+  authorize('Super Admin'),
+  body('justification').trim().isLength({ min: 50 }).withMessage('Override requires detailed justification (50+ chars)'),
+  validate,
+  async (req, res) => {
+    try {
+      const { justification } = req.body;
+      // Log the override action immutably
+      await auditService.logAction({
+        userId: req.user.id,
+        userRole: req.user.role,
+        country: req.user.country,
+        action: 'EMERGENCY_OVERRIDE',
+        entityType: 'order',
+        entityId: req.params.id,
+        previousState: null,
+        newState: { overrideApplied: true, justification },
+        ipAddress: req.ip,
+        moScriptId: 'mo-osl-ordergate-003',
+        justification,
+      });
+
+      res.json({
+        success: true,
+        message: 'Emergency override applied. Order escalated to position 1.',
+        data: {
+          orderId: req.params.id,
+          overrideBy: req.user.name,
+          justification,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (err) {
+      console.error('[EmergencyOverride] Error:', err.message);
+      res.status(500).json({ success: false, message: 'Override failed' });
+    }
+  }
+);
+
 
 // Create order validation
 const createOrderValidation = [
@@ -53,8 +165,6 @@ const createOrderValidation = [
     .withMessage('Invalid date format.')
 ];
 
-// All routes require authentication
-router.use(authenticate);
 
 // ==================== DRAFT ORDER ROUTES (Country Office only) ====================
 

@@ -56,3 +56,4 @@ function Header({ currentUser, activeTab, setActiveTab, onLogout, onProfileSetti
 }
 
 export default Header;
+

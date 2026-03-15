@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { commoditiesAPI } from '../services/api';
+import { CURRENCY_CONFIG } from '../constants';
 import '../styles/CatalogView.css';
 
-function CatalogView({ commodities: initialCommodities, cart, setCart, onCreateOrder }) {
+function CatalogView({ commodities: initialCommodities, cart, setCart, onCreateOrder, onViewItem }) {
   const [commodities, setCommodities] = useState(initialCommodities || []);
   const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, totalPages: 1 });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState([]);
-  const [showInfo, setShowInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentCurrency, setCurrentCurrency] = useState('USD');
 
   // Fetch categories on mount
   useEffect(() => {
@@ -53,225 +54,257 @@ function CatalogView({ commodities: initialCommodities, cart, setCart, onCreateO
   // Initial fetch
   useEffect(() => {
     fetchCommodities(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle search
   const handleSearch = () => {
     fetchCommodities(1, searchTerm, selectedCategory);
   };
 
-  // Handle category filter
   const handleCategoryFilter = (category) => {
     const newCategory = category === selectedCategory ? '' : category;
     setSelectedCategory(newCategory);
     fetchCommodities(1, searchTerm, newCategory);
   };
 
-  // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       fetchCommodities(newPage);
     }
   };
 
-  const addToCart = (commodity) => {
-    const existing = cart.find(c => c.commodity.id === commodity.id);
-    if (existing) {
-      setCart(cart.map(c =>
-        c.commodity.id === commodity.id ? { ...c, qty: c.qty + 1 } : c
-      ));
-      toast.success(`Added another ${commodity.name} to cart`);
-    } else {
-      setCart([...cart, { commodity, qty: 1 }]);
-      toast.success(`${commodity.name} added to cart`);
-    }
+  const formatPrice = (priceUSD) => {
+    const config = CURRENCY_CONFIG[currentCurrency] || CURRENCY_CONFIG.USD;
+    const converted = (parseFloat(priceUSD) * config.rate).toFixed(0);
+    return `${config.symbol}${converted}`;
   };
 
-  const closeInfoModal = () => setShowInfo(null);
+  const getShapeClass = (category) => {
+    const cat = (category || '').toLowerCase();
+    if (cat.includes('kit') || cat.includes('emergency')) return 'kit';
+    if (cat.includes('mask') || cat.includes('ppe')) return 'mask';
+    if (cat.includes('glove')) return 'glove';
+    return '';
+  };
 
   return (
-    <div className="catalog-view">
-      <div className="catalog-header">
-        <h2 className="catalog-title">Commodity Catalog</h2>
-        {cart.length > 0 && (
-          <button onClick={onCreateOrder} className="catalog-proceed-btn">
-            Proceed to Order ({cart.length} items)
-          </button>
-        )}
-      </div>
-
-      {/* Search Bar */}
-      <div className="catalog-search-bar">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search commodities..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="search-input"
-          />
-          <button onClick={handleSearch} className="search-btn">🔍</button>
+    <div className="catalog-view" id="page-products">
+      <section className="topbar mb-2">
+        <div className="page-title">
+          <h1>Products</h1>
+          <p>Medical supply catalog with emergency kits, PPE, detail view, and multi-currency pricing.</p>
         </div>
-        <div className="results-info">
-          Showing {commodities.length} of {pagination.total} items
+        <div className="top-actions">
+          <div className="pill">Medical Inventory</div>
+          {cart.length > 0 && (
+             <button onClick={onCreateOrder} className="pill" style={{ background: 'var(--blue)', color: 'white', border: 'none', cursor: 'pointer' }}>
+               Checkout ({cart.length})
+             </button>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Category Filter Pills */}
-      <div className="catalog-filters">
-        <button
-          onClick={() => handleCategoryFilter('')}
-          className={`catalog-filter-btn ${selectedCategory === '' ? 'active' : ''}`}
-        >
-          All
-        </button>
-        {categories.map(cat => (
-          <button
-            key={cat.id || cat.name}
-            onClick={() => handleCategoryFilter(cat.name)}
-            className={`catalog-filter-btn ${selectedCategory === cat.name ? 'active' : ''}`}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
+      <div className="products-shell" id="productsCatalogShell">
+        <section className="products-hero">
+          <div className="hero-banner" style={{ border: 'none' }}>
+            <div className="hero-copy">
+              <div className="eyebrow">Medical products • sterile supply</div>
+              <h2>Smart care inventory with a premium clinical shelf.</h2>
+              <p>Borrowing that glossy product-landing drama from your references, but kept disciplined inside the dashboard frame.</p>
+              <div className="hero-actions">
+                <button className="hero-btn primary" onClick={() => document.getElementById('catalog-main-grid').scrollIntoView({ behavior: 'smooth' })}>Browse catalog</button>
+                <button className="hero-btn" onClick={() => handleCategoryFilter('Emergency Health Kits')}>Emergency kits</button>
+              </div>
+            </div>
+            <div className="hero-visual">
+              <div className="device-screen">
+                <div className="device-ui">
+                  <div className="ui-line" style={{ width: '56%' }}></div>
+                  <div className="ui-box"></div>
+                  <div className="ui-line" style={{ width: '88%' }}></div>
+                  <div className="ui-line" style={{ width: '72%' }}></div>
+                  <div className="ui-line" style={{ width: '64%' }}></div>
+                </div>
+              </div>
+              <div className="device-screen small">
+                <div className="device-ui" style={{ padding: '12px', gap: '8px' }}>
+                  <div className="ui-box" style={{ height: '28px' }}></div>
+                  <div className="ui-line" style={{ width: '70%' }}></div>
+                  <div className="ui-line" style={{ width: '48%' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      {/* Commodity Grid */}
-      {isLoading ? (
-        <div className="loading-indicator">Loading...</div>
-      ) : (
-        <div className="catalog-grid">
-          {commodities.map(commodity => {
-            const inCart = cart.find(c => c.commodity.id === commodity.id);
-            const isLowStock = commodity.stock < 100;
-            return (
-              <div key={commodity.id} className="catalog-card">
-                <div className="catalog-card-header">
-                  <div className="catalog-card-category">{commodity.category}</div>
-                  <button 
-                    className="catalog-info-btn"
-                    onClick={() => setShowInfo(commodity)}
-                    title="View details"
-                  >
-                    ℹ️
-                  </button>
+          <div className="hero-side">
+            <div className="spotlight-card">
+              <div className="product-art kit"></div>
+              <div className="spotlight-copy">
+                <h3>Emergency Health Kits</h3>
+                <p>Trauma-ready, sealed, category-labeled kits for field response, clinics, and rapid dispatch stations.</p>
+                <div className="chip-row">
+                  <span className="chip">IFAK</span><span className="chip">Trauma</span><span className="chip">Rapid Pack</span>
                 </div>
-                <h3 className="catalog-card-name">{commodity.name}</h3>
-                <div className="catalog-card-unit">{commodity.unit}</div>
-                <div className="catalog-card-price">${parseFloat(commodity.price).toFixed(2)}</div>
-                <div className={`catalog-card-stock ${isLowStock ? 'low-stock' : 'in-stock'}`}>
-                  {isLowStock ? '⚠ Low Stock' : '✓ In Stock'} ({commodity.stock} units)
+              </div>
+            </div>
+            <div className="spotlight-card">
+              <div className="product-art mask"></div>
+              <div className="spotlight-copy">
+                <h3>PPE Essentials</h3>
+                <p>Mask, gloves, shields, gowns, and sterile barrier stock with shelf-life and usage metadata.</p>
+                <div className="chip-row">
+                  <span className="chip">N95</span><span className="chip">Gloves</span><span className="chip">Sterile</span>
                 </div>
-                {/* Warehouse breakdown if available */}
-                {commodity.warehouse_stock && commodity.warehouse_stock.length > 0 && (
-                  <div className="catalog-card-warehouse-stock">
-                    {commodity.warehouse_stock.map((ws, idx) => (
-                      <span key={idx} className="warehouse-badge">
-                        {ws.warehouse_code}: {ws.quantity}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <button
-                  onClick={() => addToCart(commodity)}
-                  className={`catalog-add-btn ${inCart ? 'in-cart' : ''}`}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="products-layout" id="catalog-main-grid">
+          <aside className="filters-card">
+            <div className="search-box-glossy">
+              <span>⌕</span>
+              <input 
+                type="text" 
+                placeholder="Search products, SKUs..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            
+            <div className="filter-group">
+              <div className="filter-title">Categories</div>
+              <div 
+                className={`category-link ${selectedCategory === '' ? 'active' : ''}`}
+                onClick={() => handleCategoryFilter('')}
+              >
+                All Products <span>{pagination.total > 0 && selectedCategory === '' ? pagination.total : ''}</span>
+              </div>
+              {categories.map(cat => (
+                <div 
+                  key={cat.id || cat.name}
+                  className={`category-link ${selectedCategory === cat.name ? 'active' : ''}`}
+                  onClick={() => handleCategoryFilter(cat.name)}
                 >
-                  {inCart ? `In Cart (${inCart.qty})` : 'Add to Cart'}
+                  {cat.name} <span></span>
+                </div>
+              ))}
+            </div>
+
+            <div className="filter-group">
+              <div className="filter-title">Currency</div>
+              <div className="currency-pills">
+                {Object.keys(CURRENCY_CONFIG).map((cur) => (
+                  <button 
+                    key={cur}
+                    className={`currency-pill ${currentCurrency === cur ? 'active' : ''}`}
+                    onClick={() => setCurrentCurrency(cur)}
+                  >
+                    {cur}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="note-box">
+              <b>Catalog note</b>
+              Tap 'View details' on a product card and the detail panel updates with summary, usage guidance, pricing in {currentCurrency}.
+            </div>
+          </aside>
+
+          <div className="products-main">
+            <div className="products-head">
+              <div>
+                <h3 style={{ margin: 0, fontSize: '24px' }}>Featured medical products</h3>
+                <div className="subtle" style={{ marginTop: '6px' }}>Styled with the glossy promo energy of your references, but locked to the dashboard width.</div>
+              </div>
+              <div className="chip-row">
+                <span className="chip">Clinic Stock</span>
+                <span className="chip">Emergency Ready</span>
+                <span className="chip">Multi-currency</span>
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="loading-indicator">Retrieving inventory...</div>
+            ) : commodities.length === 0 ? (
+              <div className="loading-indicator">No products found matching your criteria.</div>
+            ) : (
+              <div className="products-grid">
+                {commodities.map(commodity => {
+                  const shapeClass = getShapeClass(commodity.category);
+                  
+                  return (
+                    <article key={commodity.id} className="product-card" onClick={() => onViewItem(commodity, currentCurrency)}>
+                      <div className="product-top">
+                        <span className="badge">{commodity.category}</span>
+                        {/* Background shape */}
+                        {shapeClass && <div className={`product-shape-bg ${shapeClass}`} style={{ position: 'absolute', right: '20px', bottom: '14px', width: '124px', height: '110px', opacity: 0.1, background: 'var(--blue)', borderRadius: '30px' }}></div>}
+                        {/* Actual Image */}
+                        <img 
+                          src={(commodity.image || '').replace('/images/real/', '/images/')} 
+                          alt={commodity.name} 
+                          className="product-shape-img"
+                          onError={(e) => {
+                            e.target.onerror = null; 
+                            e.target.src = '/images/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                      <div className="product-body">
+                        <div className="product-meta">
+                          <div>
+                            <h4 className="product-name" style={{ marginBottom: '8px' }}>{commodity.name}</h4>
+                            <div className="sku">SKU {commodity.id} • {commodity.unit}</div>
+                          </div>
+                          <div className="price-block">
+                            <strong className="money">{formatPrice(commodity.price)}</strong>
+                            <span>per {String(commodity.unit).toLowerCase().replace(/s$/, '')}</span>
+                          </div>
+                        </div>
+                        <div className="spec-list">
+                          <div>Category<b>{commodity.category}</b></div>
+                          <div>Stock<b style={{ color: commodity.stock < 100 ? '#DC2626' : 'inherit' }}>{commodity.stock} {commodity.unit}</b></div>
+                          <div>Use case<b className="truncate">{commodity.usedFor || 'General Use'}</b></div>
+                          <div>Shelf life<b>{commodity.shelf_life || '12-36 mos'}</b></div>
+                        </div>
+                        <div className="card-actions">
+                          <button className="link-btn" onClick={(e) => { e.stopPropagation(); onViewItem({ ...commodity, currentCurrency }); }}>Summary</button>
+                          <button className="link-btn primary" onClick={(e) => { e.stopPropagation(); onViewItem({ ...commodity, currentCurrency }); }}>View details</button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* Pagination */}
+            {!isLoading && pagination.totalPages > 1 && (
+              <div className="pagination">
+                <button 
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page === 1}
+                  className="pagination-btn"
+                >
+                  ← Previous
+                </button>
+                <div className="subtle">
+                  Page {pagination.page} of {pagination.totalPages}
+                </div>
+                <button 
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page === pagination.totalPages}
+                  className="pagination-btn"
+                >
+                  Next →
                 </button>
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="pagination">
-          <button 
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page === 1}
-            className="pagination-btn"
-          >
-            ← Previous
-          </button>
-          <div className="pagination-info">
-            Page {pagination.page} of {pagination.totalPages}
+            )}
           </div>
-          <button 
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page === pagination.totalPages}
-            className="pagination-btn"
-          >
-            Next →
-          </button>
-        </div>
-      )}
-
-      {/* Commodity Info Modal */}
-      {showInfo && (
-        <div className="modal-overlay" onClick={closeInfoModal}>
-          <div className="modal modal-sm commodity-info-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">{showInfo.name}</h2>
-              <button onClick={closeInfoModal} className="modal-close-btn">×</button>
-            </div>
-            <div className="modal-body">
-              <div className="commodity-info-section">
-                <label>Category</label>
-                <p>{showInfo.category}</p>
-              </div>
-              <div className="commodity-info-section">
-                <label>Unit</label>
-                <p>{showInfo.unit}</p>
-              </div>
-              <div className="commodity-info-section">
-                <label>Price</label>
-                <p>${parseFloat(showInfo.price).toFixed(2)}</p>
-              </div>
-              {showInfo.description && (
-                <div className="commodity-info-section">
-                  <label>Description</label>
-                  <p>{showInfo.description}</p>
-                </div>
-              )}
-              {showInfo.storage_requirements && (
-                <div className="commodity-info-section">
-                  <label>Storage Requirements</label>
-                  <p>{showInfo.storage_requirements}</p>
-                </div>
-              )}
-              {showInfo.shelf_life && (
-                <div className="commodity-info-section">
-                  <label>Shelf Life</label>
-                  <p>{showInfo.shelf_life}</p>
-                </div>
-              )}
-              {showInfo.last_updated_by_name && (
-                <div className="commodity-info-section">
-                  <label>Last Updated By</label>
-                  <p>{showInfo.last_updated_by_name}</p>
-                </div>
-              )}
-              <div className="commodity-info-section">
-                <label>Stock by Warehouse</label>
-                <div className="commodity-warehouse-list">
-                  {showInfo.warehouse_stock && showInfo.warehouse_stock.length > 0 ? (
-                    showInfo.warehouse_stock.map((ws, idx) => (
-                      <div key={idx} className="warehouse-stock-row">
-                        <span className="warehouse-name">{ws.warehouse_name}</span>
-                        <span className="warehouse-qty">{ws.quantity} units</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p>Total: {showInfo.stock} units</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        </section>
+      </div>
     </div>
   );
 }

@@ -39,7 +39,7 @@ const initializeDatabase = async () => {
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         name VARCHAR(255) NOT NULL,
-        role VARCHAR(50) NOT NULL CHECK (role IN ('Country Office', 'Laboratory Team', 'OSL Team')),
+        role VARCHAR(50) NOT NULL,
         country VARCHAR(100),
         is_active BOOLEAN DEFAULT true,
         last_login TIMESTAMP,
@@ -225,10 +225,15 @@ const initializeDatabase = async () => {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'fulfillment_warehouse_id') THEN
           ALTER TABLE orders ADD COLUMN fulfillment_warehouse_id INTEGER REFERENCES warehouses(id) ON DELETE SET NULL;
         END IF;
+        -- Fix users constraints and columns
+        -- Fix users constraints and columns
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'must_change_password') THEN
+          ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT false;
+        END IF;
       END $$;
     `);
-
-    // Create indexes for better query performance
+      
+    await client.query(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_orders_country ON orders(country)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_orders_created_by ON orders(created_by)`);

@@ -4,18 +4,9 @@ import { authAPI } from '../services/api';
 import ForgotPasswordModal from './modals/ForgotPasswordModal';
 import '../styles/LoginScreen.css';
 
-const DEV_MODE = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
-const TEST_ACCOUNTS = [
-  { email: 'super.admin@who.int', role: 'Super Admin' },
-  { email: 'admin.nigeria@who.int', role: 'Country Office' },
-  { email: 'lab.reviewer@who.int', role: 'Laboratory Team' },
-  { email: 'osl.admin@who.int', role: 'OSL Team' },
-];
-const TEST_PASSWORD = 'Password123';
-
 function LoginScreen({ onLogin }) {
-  const [email, setEmail] = useState(DEV_MODE ? TEST_ACCOUNTS[0].email : '');
-  const [password, setPassword] = useState(DEV_MODE ? TEST_PASSWORD : '');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -116,28 +107,10 @@ function LoginScreen({ onLogin }) {
           </ul>
         </div>*/}
 
-        {/* Dev Quick Login */}
-        {DEV_MODE ? (
-          <div style={{ marginTop: '16px', padding: '12px', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
-            <p style={{ fontSize: '11px', fontWeight: 600, color: '#0369a1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Quick Login (Dev Mode)</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {TEST_ACCOUNTS.map(acc => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => { setEmail(acc.email); setPassword(TEST_PASSWORD); }}
-                  style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #7dd3fc', background: email === acc.email ? '#0ea5e9' : '#fff', color: email === acc.email ? '#fff' : '#0369a1', cursor: 'pointer' }}
-                >
-                  {acc.role}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="login-demo-note">
-            <p>Contact your administrator for account access.</p>
-          </div>
-        )}
+        {/* Demo Accounts Note */}
+        <div className="login-demo-note">
+          <p>Contact your administrator for account access.</p>
+        </div>
       </div>
 
       {/* Forgot Password Modal */}
