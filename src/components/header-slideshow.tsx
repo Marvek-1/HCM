@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import Image from "next/image"
-import { WHOLogo } from "@/components/who-logo"
+import { WHOLogo } from "../components/who-logo"
 
 const slideshowImages = [
   "/images/slideshow/cargo-loading.jpeg",
@@ -35,12 +34,10 @@ export function HeaderSlideshow() {
           className="absolute inset-0"
         >
           <div className="relative h-full w-full">
-            <Image
+            <img
               src={slideshowImages[currentIndex] || "/placeholder.svg"}
               alt={`WHO operations slide ${currentIndex + 1}`}
-              fill
-              className="object-cover"
-              priority
+              className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-[#005A9C]/60" />
           </div>

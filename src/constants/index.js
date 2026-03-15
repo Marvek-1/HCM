@@ -24,19 +24,19 @@ export const PRIORITY_CONFIG = {
 
 const DEV_UNLOCK_ROLES = import.meta.env.VITE_DEV_UNLOCK_ROLES === 'true';
 
-// Navigation configuration with categories (Specific 6-point flow)
+// Navigation configuration with categories
 export const NAV_CATEGORIES = [
   { 
     id: 'dashboard', 
     label: 'Dashboard', 
     icon: '🏠',
     items: [
-      { id: 'dashboard', label: 'Overview', icon: '📊' }
+      { id: 'dashboard', label: 'Main Dashboard', icon: '📊' }
     ]
   },
   {
-    id: 'products',
-    label: 'Products',
+    id: 'catalog',
+    label: 'Catalog',
     icon: '🏷️',
     items: [
       { id: 'catalog', label: 'Product Catalog', icon: '🛍️' }
@@ -47,27 +47,32 @@ export const NAV_CATEGORIES = [
     label: 'Orders',
     icon: '📋',
     items: [
-      { id: 'orders', label: 'Order List', icon: '🧾' },
-      { id: 'drafts', label: 'Drafts', icon: '📝' }
+      { id: 'orders', label: 'Orders Management', icon: '🧾' },
+      { id: 'drafts', label: 'Draft Orders', icon: '📝' }
     ]
   },
   {
-    id: 'osl-ops',
+    id: 'inventory',
+    label: 'Inventory',
+    icon: '📦',
+    items: [
+      { id: 'inventory', label: 'Inventory Management', icon: '📦' }
+    ]
+  },
+  {
+    id: 'osl',
     label: 'OSL Operations',
     icon: '⚡',
     items: [
-      { id: 'inventory', label: 'Inventory List', icon: '📦' },
-      { id: 'operations', label: 'Stock Release & Ops', icon: '🧪' },
-      { id: 'warehouses', label: 'Warehouse Management', icon: '🏭' }
+      { id: 'operations', label: 'OSL Operations', icon: '🧪' }
     ]
   },
   {
-    id: 'lab',
-    label: 'Laboratory',
-    icon: '🔬',
+    id: 'warehouse',
+    label: 'Warehouse',
+    icon: '🏭',
     items: [
-      { id: 'lab-dashboard', label: 'Lab Dashboard', icon: '📈' },
-      { id: 'orders', label: 'Lab Requests', icon: '🧪' }
+      { id: 'warehouses', label: 'Warehouse Management', icon: '🏭' }
     ]
   },
   {
@@ -75,7 +80,7 @@ export const NAV_CATEGORIES = [
     label: 'Admin',
     icon: '⚙️',
     items: [
-      { id: 'admin', label: 'System Controls', icon: '🛡️' }
+      { id: 'admin', label: 'Admin Dashboard', icon: '🛡️' }
     ]
   }
 ];
@@ -91,7 +96,7 @@ export const getNavItems = (role) => {
         return ['dashboard', 'catalog', 'orders', 'drafts'].includes(item.id);
       }
       if (role === 'Laboratory Team') {
-        return ['dashboard', 'catalog', 'orders', 'drafts', 'lab-dashboard'].includes(item.id);
+        return ['dashboard', 'catalog', 'orders', 'drafts'].includes(item.id);
       }
       if (role === 'OSL Team') {
         return ['dashboard', 'catalog', 'orders', 'inventory', 'operations', 'warehouses'].includes(item.id);

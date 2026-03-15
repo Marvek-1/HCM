@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { motion, useAnimation } from "framer-motion"
 import { useInventory } from "@/context/inventory-context"
 import { getCategorySvgPath } from "@/lib/utils"
-import { ImageLoader } from "@/components/image-loader"
+import { ImageLoader } from "../components/image-loader"
 
 export function ContinuousScrollBackground() {
   const { categories } = useInventory()

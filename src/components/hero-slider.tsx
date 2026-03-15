@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { WHOLogo } from "@/components/who-logo"
+import { Button } from "../components/ui/button"
+import { WHOLogo } from "../components/who-logo"
 
 const slides = [
   {

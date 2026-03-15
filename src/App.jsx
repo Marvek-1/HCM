@@ -16,6 +16,7 @@ import {
   AdminView,
   OSLOperations,
   DraftsView,
+  WarehouseManagement,
   NewOrderModal,
   OrderDetailModal,
   AddCommodityModal,
@@ -40,12 +41,6 @@ const DEV_TEST_USER = {
 };
 
 function App() {
-  // Auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(DEV_MODE_SKIP_AUTH);
-  const [currentUser, setCurrentUser] = useState(DEV_MODE_SKIP_AUTH ? DEV_TEST_USER : null);
-  const [isLoading, setIsLoading] = useState(!DEV_MODE_SKIP_AUTH);
-function App() {
-  // Auth state
   // Auth state - TEMPORARILY DISABLED FOR DEVELOPMENT
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [currentUser, setCurrentUser] = useState({
@@ -56,7 +51,7 @@ function App() {
     country: 'WHO Afro',
     oslAdminLevel: 3
   });
-  const [isLoading, _setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // App state
@@ -91,7 +86,7 @@ function App() {
         return;
       }
       
-    /*const checkAuth = async () => {
+      /* Disabled auth check code
       if (authAPI.isAuthenticated()) {
         const storedUser = authAPI.getStoredUser();
         if (storedUser) {
@@ -100,8 +95,9 @@ function App() {
         }
       }
       setIsLoading(false);
+      */
     };
-    checkAuth();*/
+    checkAuth();
   }, []);
 
   // Fetch data when logged in
@@ -144,12 +140,7 @@ function App() {
   }, [isLoggedIn, fetchData]);
 
   // Login handler
-  const handleLogin = () => {
-    /*setCurrentUser(user);
-    setIsLoggedIn(true);
-    setActiveTab('dashboard');
-    toast.success(`Welcome back, ${user.name}!`);*/
-  };
+  
 
   // Logout handler
   const handleLogout = async () => {
@@ -539,14 +530,16 @@ function App() {
           ) : (
             <div className="p-0">
               {(activeTab === 'dashboard' || activeTab === 'lab-dashboard') && (
-                <Dashboard
-                  stats={dashboardStats}
-                  role={currentUser.role}
-                  orders={orders}
-                  onViewOrder={handleViewOrder}
-                  currentUser={currentUser}
-                  isLabView={activeTab === 'lab-dashboard'}
-                />
+                <div className="p-8">
+                  <Dashboard
+                    stats={dashboardStats}
+                    role={currentUser.role}
+                    orders={orders}
+                    onViewOrder={handleViewOrder}
+                    currentUser={currentUser}
+                    isLabView={activeTab === 'lab-dashboard'}
+                  />
+                </div>
               )}
 
               {activeTab === 'orders' && (
@@ -614,6 +607,12 @@ function App() {
               {activeTab === 'operations' && currentUser.role === 'OSL Team' && (
                 <div className="p-8">
                   <OSLOperations warehouses={warehouses} oslAdminLevel={currentUser.oslAdminLevel} />
+                </div>
+              )}
+
+              {activeTab === 'warehouses' && (currentUser.role === 'OSL Team' || currentUser.role === 'Super Admin') && (
+                <div className="p-8">
+                  <WarehouseManagement warehouses={warehouses} />
                 </div>
               )}
 

@@ -11,7 +11,9 @@ function Header({ currentUser, activeTab, setActiveTab, onLogout, onProfileSetti
       <div className="header-container">
         {/* Logo & Title */}
         <div className="header-brand">
-          <div className="header-logo">WHO</div>
+          <div className="header-logo">
+            <img src="/images/en.png" alt="WHO Logo" />
+          </div>
           <div>
             <h1 className="header-title">Health Commodity Order Management</h1>
             <p className="header-subtitle">HCOMS Portal</p>

@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { useInventory } from "@/context/inventory-context"
-import { InventoryItem } from "@/components/inventory-item"
-import { CategoryNavigation } from "@/components/category-navigation"
-import { Pagination } from "@/components/pagination"
+import { InventoryItem } from "../components/inventory-item"
+import { CategoryNavigation } from "../components/category-navigation"
+import { Pagination } from "../components/pagination"
 import { Search, Filter, X } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Input } from "../components/ui/input"
+import { Button } from "../components/ui/button"
 
 const ITEMS_PER_PAGE = 12
 

@@ -4,12 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { EPRLogo } from "@/components/epr-logo"
-import { Button } from "@/components/ui/button"
+import { EPRLogo } from "../components/epr-logo"
+import { Button } from "../components/ui/button"
 import { ShoppingCart, Menu, X } from "lucide-react"
 import { useCart } from "@/context/cart-context"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Cart } from "@/components/cart"
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet"
+import { Cart } from "../components/cart"
 
 export function MainNavigation() {
   const pathname = usePathname()

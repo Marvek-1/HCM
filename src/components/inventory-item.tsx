@@ -3,11 +3,11 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "../components/ui/card"
+import { Button } from "../components/ui/button"
 import { ShoppingCart, Eye } from "lucide-react"
 import { useCart } from "@/context/cart-context"
-import { InventoryDetails } from "@/components/inventory-details"
+import { InventoryDetails } from "../components/inventory-details"
 import { getItemSvgPath } from "@/lib/utils"
 import { getRealItemImage } from "@/lib/real-images"
 

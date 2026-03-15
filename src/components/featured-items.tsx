@@ -4,9 +4,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { useInventory } from "@/context/inventory-context"
-import { InventoryItem } from "@/components/inventory-item"
-import { InventoryDetails } from "@/components/inventory-details"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { InventoryItem } from "../components/inventory-item"
+import { InventoryDetails } from "../components/inventory-details"
+import { Dialog, DialogContent } from "../components/ui/dialog"
 
 export function FeaturedItems() {
   const { inventory } = useInventory()

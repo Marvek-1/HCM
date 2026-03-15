@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { useInventory } from "@/context/inventory-context"
 import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { CategoryDossierCard } from "@/components/category-dossier-card"
+import { Input } from "../components/ui/input"
+import { CategoryDossierCard } from "../components/category-dossier-card"
 
 export function CategoryShowcase() {
   const { categories, inventory } = useInventory()

@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion"
 import { Info } from "lucide-react"
-import { ImageLoader } from "@/components/image-loader"
+import { ImageLoader } from "../components/image-loader"
 import { getVehicleTypeIcon, getItemSvgPath } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "../components/ui/button"
 import { getRealItemImage } from "@/lib/real-images"
 import Image from "next/image"
 

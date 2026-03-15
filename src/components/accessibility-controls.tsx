@@ -1,9 +1,9 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Button } from "../components/ui/button"
+import { Switch } from "../components/ui/switch"
+import { Label } from "../components/ui/label"
 import { Hand, Eye, Volume2, Type, Palette, Languages, Settings, Subtitles } from "lucide-react"
 
 interface AccessibilityControlsProps {

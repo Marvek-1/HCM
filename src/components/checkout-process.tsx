@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { useCart } from "@/context/cart-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "../components/ui/button"
+import { Input } from "../components/ui/input"
+import { Textarea } from "../components/ui/textarea"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Label } from "../components/ui/label"
+import { Separator } from "../components/ui/separator"
 import { Truck, MapPin, User, CheckCircle, ArrowLeft, ArrowRight, Package } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 

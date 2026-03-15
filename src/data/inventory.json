@@ -2869,10 +2869,5 @@
     "image": "https://source.unsplash.com/featured/?Safety%20Box",
     "status": "Normal",
     "model3d": "safety_box"
-  },
-  {
-    "id": 262,
-    "name": "Set",
-    "description": "Set, Tunic + Trousers Surgical, Woven, Reusable, Green, Size L",
-    "usedFor": "Surgical attire",
-    "price
+  }
+]

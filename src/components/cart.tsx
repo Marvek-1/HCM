@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { X, Trash2, Download, Check, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useCart } from "@/context/cart-context"
+import { Button } from "../components/ui/button"
+import { Input } from "../components/ui/input"
+import { useCart } from "./../context/cart-context"
 import { motion, AnimatePresence } from "framer-motion"
-import { OrderRequestForm } from "@/components/order-request-form"
-import { CheckoutProcess } from "@/components/checkout-process"
+import { OrderRequestForm } from "../components/order-request-form"
+import { CheckoutProcess } from "../components/checkout-process"
 
 interface CartProps {
   onClose: () => void

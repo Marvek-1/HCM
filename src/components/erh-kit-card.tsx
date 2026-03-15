@@ -2,8 +2,8 @@
 
 import type { ERHKit } from "@/lib/erh-kit-mapping"
 import Image from "next/image"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Badge } from "../components/ui/badge"
 
 interface ERHKitCardProps {
   kit: ERHKit

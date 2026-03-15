@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { ImageLoader } from "@/components/image-loader"
+import { ImageLoader } from "../components/image-loader"
 import { getItemSvgPath } from "@/lib/utils"
 import { getRealItemImage } from "@/lib/real-images"
 import { ShoppingCart, Check, Info, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "../components/ui/button"
 import { useCart } from "@/context/cart-context"
 import Image from "next/image"
 

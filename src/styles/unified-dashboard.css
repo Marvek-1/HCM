@@ -595,11 +595,13 @@
 
   .tab-navigation {
     overflow-x: auto;
-    scrollbar-width: none;
+    /* Hide scrollbar for all browsers */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 
   .tab-navigation::-webkit-scrollbar {
-    display: none;
+    display: none;  /* Chrome, Safari, Opera */
   }
 
   .grid-3col,

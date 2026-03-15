@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Button } from "../components/ui/button"
+import { Badge } from "../components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import {
   BookOpen,
   FileText,
@@ -20,11 +20,11 @@ import {
   Bookmark,
   Search,
 } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { VisualLearningCard } from "@/components/visual-learning-card"
-import { InteractiveSimulation } from "@/components/interactive-simulation"
-import { AILearningAssistant } from "@/components/ai-learning-assistant"
-import { AccessibilityControls } from "@/components/accessibility-controls"
+import { Input } from "../components/ui/input"
+import { VisualLearningCard } from "../components/visual-learning-card"
+import { InteractiveSimulation } from "../components/interactive-simulation"
+import { AILearningAssistant } from "../components/ai-learning-assistant"
+import { AccessibilityControls } from "../components/accessibility-controls"
 
 interface KnowledgeHubProps {
   selectedCategory?: string

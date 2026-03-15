@@ -1,6 +1,6 @@
 "use client"
 
-import { useInventory } from "@/context/inventory-context"
+import { useInventory } from "../context/inventory-context"
 
 interface CategoryNavigationProps {
   categories: string[]

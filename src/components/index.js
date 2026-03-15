@@ -15,6 +15,7 @@ export { default as InventoryView } from './InventoryView';
 export { default as AdminView } from './AdminView';
 export { default as OSLOperations } from './OSLOperations';
 export { default as DraftsView } from './DraftsView';
+export { default as WarehouseManagement } from './WarehouseManagement';
 
 // Modal Components
 export { default as NewOrderModal } from './modals/NewOrderModal';

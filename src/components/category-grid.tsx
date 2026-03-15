@@ -4,11 +4,11 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { useInventory } from "@/context/inventory-context"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "../components/ui/badge"
 import { Search, Layers } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { EPRLogo } from "@/components/epr-logo"
-import { Button } from "@/components/ui/button"
+import { Input } from "../components/ui/input"
+import { EPRLogo } from "../components/epr-logo"
+import { Button } from "../components/ui/button"
 
 const CATEGORY_ICONS = {
   "Biomedical Consumables": "🧪",

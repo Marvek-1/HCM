@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Button } from "../components/ui/button"
+import { Badge } from "../components/ui/badge"
 import { Play, Pause, RotateCcw, ZoomIn, ZoomOut, Hand, Subtitles, Volume2, VolumeX, Eye, Download } from "lucide-react"
-import { Slider } from "@/components/ui/slider"
+import { Slider } from "../components/ui/slider"
 
 interface VisualLearningCardProps {
   selectedItem?: any
