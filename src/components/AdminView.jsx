@@ -428,7 +428,7 @@ function AdminView() {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
-            <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
+            <button onClick={() => setShowCreateModal(true)} className="btn-primary">
               + Create User
             </button>
           </div>
@@ -652,7 +652,7 @@ function AdminView() {
       {activeTab === 'orders' && (
         <div className="admin-content">
           <div className="order-management-header">
-            <h3>Order History Management</h3>
+            <h3 className="section-title">Order History Management</h3>
             <p className="section-description">
               Select specific orders to delete or clear orders by country/all records.
             </p>
@@ -670,15 +670,10 @@ function AdminView() {
             <button
               type="button"
               onClick={(e) => {
-                console.log('🔘 Clear by Country button clicked');
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('✅ Event prevented and stopped');
                 setClearOrdersMode('country');
-                console.log('✅ Mode set to country');
-                // Small delay to ensure click event completes before modal renders
                 setTimeout(() => {
-                  console.log('✅ Opening modal now...');
                   setShowClearOrdersModal(true);
                 }, 10);
               }}
@@ -699,7 +694,7 @@ function AdminView() {
                 }
               }}
               className="btn-danger"
-              style={{ marginLeft: '10px' }}
+              style={{ marginLeft: '16px' }}
             >
               💣 Clear All Orders
             </button>

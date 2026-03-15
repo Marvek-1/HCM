@@ -15,8 +15,8 @@ const TEST_ACCOUNTS = [
 const TEST_PASSWORD = 'Password123!';
 
 function LoginScreen({ onLogin }) {
-  const [email, setEmail] = useState(DEV_MODE ? TEST_ACCOUNTS[0].email : '');
-  const [password, setPassword] = useState(DEV_MODE ? TEST_PASSWORD : '');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -154,6 +154,10 @@ function LoginScreen({ onLogin }) {
             </div>
           </div>
         ) : null}
+        {/* Demo Accounts Note */}
+        <div className="login-demo-note">
+          <p>Contact your administrator for account access.</p>
+        </div>
       </div>
 
       {/* Forgot Password Modal */}

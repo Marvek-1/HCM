@@ -8,8 +8,10 @@ import './styles/unified-dashboard.css';
 import {
   LoginScreen,
   Header,
+  Sidebar,
   Dashboard,
   OrdersView,
+  CatalogView,
   InventoryView,
   AdminView,
   OSLOperations,
@@ -18,7 +20,7 @@ import {
   OrderDetailModal,
   AddCommodityModal,
   ProfileSettings,
-  Catalogue
+  ItemDetailView
 } from './components';
 import Loading from './components/Loading';
 import SessionTimeoutWarning from './components/SessionTimeoutWarning';
@@ -42,6 +44,19 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(DEV_MODE_SKIP_AUTH);
   const [currentUser, setCurrentUser] = useState(DEV_MODE_SKIP_AUTH ? DEV_TEST_USER : null);
   const [isLoading, setIsLoading] = useState(!DEV_MODE_SKIP_AUTH);
+function App() {
+  // Auth state
+  // Auth state - TEMPORARILY DISABLED FOR DEVELOPMENT
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [currentUser, setCurrentUser] = useState({
+    id: 'mock-admin-id',
+    name: 'Admin User',
+    email: 'admin@hcoms.who.int',
+    role: 'Super Admin',
+    country: 'WHO Afro',
+    oslAdminLevel: 3
+  });
+  const [isLoading, _setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // App state
@@ -50,6 +65,7 @@ function App() {
   const [commodities, setCommodities] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedCommodity, setSelectedCommodity] = useState(null);
   const [cart, setCart] = useState([]);
   const [stats, setStats] = useState({});
 
@@ -58,11 +74,12 @@ function App() {
   const [showAddCommodity, setShowAddCommodity] = useState(false);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
-  
+
   // Draft editing state
   const [editingDraft, setEditingDraft] = useState(null);
 
   // Check authentication on mount
+  // Check authentication on mount - DISABLED
   useEffect(() => {
     const checkAuth = async () => {
       // Preload product images for smooth display
@@ -74,6 +91,7 @@ function App() {
         return;
       }
       
+    /*const checkAuth = async () => {
       if (authAPI.isAuthenticated()) {
         const storedUser = authAPI.getStoredUser();
         if (storedUser) {
@@ -83,7 +101,7 @@ function App() {
       }
       setIsLoading(false);
     };
-    checkAuth();
+    checkAuth();*/
   }, []);
 
   // Fetch data when logged in
@@ -95,7 +113,7 @@ function App() {
 
       const [ordersRes, commoditiesRes, statsRes, warehousesRes] = await Promise.all([
         ordersAPI.getAll(),
-        commoditiesAPI.getAll({ limit: 1000 }),
+        commoditiesAPI.getAll(),
         ordersAPI.getStatistics(),
         commoditiesAPI.getWarehouses()
       ]);
@@ -126,11 +144,11 @@ function App() {
   }, [isLoggedIn, fetchData]);
 
   // Login handler
-  const handleLogin = (user) => {
-    setCurrentUser(user);
+  const handleLogin = () => {
+    /*setCurrentUser(user);
     setIsLoggedIn(true);
     setActiveTab('dashboard');
-    toast.success(`Welcome back, ${user.name}!`);
+    toast.success(`Welcome back, ${user.name}!`);*/
   };
 
   // Logout handler
@@ -162,7 +180,7 @@ function App() {
     }
   }, []);
 
-  const { showWarning, secondsLeft, stayLoggedIn } = useInactivityTimeout(isLoggedIn, handleTimeoutLogout);
+  const { showWarning, secondsLeft, stayLoggedIn } = useInactivityTimeout(false, handleTimeoutLogout);
 
   // Lab team forwards order to OSL
   const forwardToOSL = async (orderId, warehouseId) => {
@@ -466,18 +484,15 @@ function App() {
   }
 
   // Show login screen if not logged in
-  if (!isLoggedIn) {
+  // Show login screen if not logged in - DISABLED
+  /*if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
-  }
+  }*/
 
   const dashboardStats = getDashboardStats();
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#F8FAFC',
-      fontFamily: "'Segoe UI', system-ui, sans-serif"
-    }}>
+    <div className="flex flex-col h-screen bg-[#f5f7fb] overflow-hidden">
       {/* Header */}
       <Header
         currentUser={currentUser}
@@ -486,7 +501,6 @@ function App() {
         onLogout={handleLogout}
         onProfileSettings={() => setShowProfileSettings(true)}
         onOrderClick={async (orderId) => {
-          // Fetch order and open detail modal with chat open
           if (!orderId) {
             toast.error('Invalid order reference');
             return;
@@ -507,68 +521,113 @@ function App() {
         }}
       />
 
-      {/* Main Content */}
-      <main style={{ maxWidth: 1400, margin: '0 auto', padding: 24 }}>
-        {isLoadingData ? (
-          <Loading message="Loading data..." />
-        ) : (
-          <>
-            {activeTab === 'dashboard' && (
-              <Dashboard
-                stats={dashboardStats}
-                role={currentUser.role}
-                orders={orders}
-                commodities={commodities}
-                onViewOrder={handleViewOrder}
-                currentUser={currentUser}
-              />
-            )}
+      {/* Main Body with Sidebar and Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar
+          currentUser={currentUser}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onLogout={handleLogout}
+          onProfileSettings={() => setShowProfileSettings(true)}
+        />
 
-            {activeTab === 'orders' && (
-              <OrdersView
-                orders={orders}
-                role={currentUser.role}
-                onNewOrder={() => setShowNewOrder(true)}
-                onViewOrder={handleViewOrder}
-              />
-            )}
+        {/* Scrollable Page Content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar">
+          {isLoadingData ? (
+            <Loading message="Loading operational data..." />
+          ) : (
+            <div className="p-0">
+              {(activeTab === 'dashboard' || activeTab === 'lab-dashboard') && (
+                <Dashboard
+                  stats={dashboardStats}
+                  role={currentUser.role}
+                  orders={orders}
+                  onViewOrder={handleViewOrder}
+                  currentUser={currentUser}
+                  isLabView={activeTab === 'lab-dashboard'}
+                />
+              )}
 
-            {activeTab === 'catalogue' && (
-              <Catalogue />
-            )}
+              {activeTab === 'orders' && (
+                <div className="p-8">
+                  <OrdersView
+                    orders={orders}
+                    role={currentUser.role}
+                    onNewOrder={() => setShowNewOrder(true)}
+                    onViewOrder={handleViewOrder}
+                  />
+                </div>
+              )}
 
-            {activeTab === 'inventory' && (
-              <InventoryView
-                commodities={commodities}
-                warehouses={warehouses}
-                onUpdateStock={handleUpdateStock}
-                onUpdateWarehouseStock={handleUpdateWarehouseStock}
-                onAddCommodity={() => setShowAddCommodity(true)}
-              />
-            )}
+              {activeTab === 'catalog' && (
+                <div className="p-8">
+                  <CatalogView
+                    commodities={commodities}
+                    cart={cart}
+                    setCart={setCart}
+                    onCreateOrder={() => setShowNewOrder(true)}
+                    onViewItem={(commodity) => {
+                      setSelectedCommodity(commodity);
+                      setActiveTab('item-detail');
+                    }}
+                  />
+                </div>
+              )}
 
-            {activeTab === 'drafts' && (DEV_UNLOCK_ROLES || currentUser.role === 'Country Office' || currentUser.role === 'Laboratory Team') && (
-              <DraftsView
-                onEditDraft={(draft) => {
-                  setEditingDraft(draft);
-                  setShowNewOrder(true);
-                }}
-                onRefresh={() => {
-                  fetchData();
-                }}
-              />
-            )}
+              {activeTab === 'item-detail' && selectedCommodity && (
+                <ItemDetailView
+                  item={selectedCommodity}
+                  cart={cart}
+                  setCart={setCart}
+                  onBack={() => {
+                    setSelectedCommodity(null);
+                    setActiveTab('catalog');
+                  }}
+                />
+              )}
 
-            {activeTab === 'operations' && (DEV_UNLOCK_ROLES || currentUser.role === 'OSL Team') && (
-              <OSLOperations warehouses={warehouses} oslAdminLevel={currentUser.oslAdminLevel} />
-            )}
+              {activeTab === 'inventory' && (
+                <div className="p-8">
+                  <InventoryView
+                    commodities={commodities}
+                    warehouses={warehouses}
+                    onUpdateStock={handleUpdateStock}
+                    onUpdateWarehouseStock={handleUpdateWarehouseStock}
+                    onAddCommodity={() => setShowAddCommodity(true)}
+                  />
+                </div>
+              )}
 
-            {activeTab === 'admin' && (DEV_UNLOCK_ROLES || currentUser.role === 'Super Admin') && (
-              <AdminView />
-            )}
-          </>
-        )}
-      </main>
+              {activeTab === 'drafts' && (currentUser.role === 'Country Office' || currentUser.role === 'Laboratory Team') && (
+                <div className="p-8">
+                  <DraftsView
+                    onEditDraft={(draft) => {
+                      setEditingDraft(draft);
+                      setShowNewOrder(true);
+                    }}
+                    onRefresh={() => fetchData()}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'operations' && currentUser.role === 'OSL Team' && (
+                <div className="p-8">
+                  <OSLOperations warehouses={warehouses} oslAdminLevel={currentUser.oslAdminLevel} />
+                </div>
+              )}
+
+              {activeTab === 'admin' && currentUser.role === 'Super Admin' && (
+                <div className="p-8">
+                  <AdminView />
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Modals remain appended to the end of the container */}
 
       {/* New Order Modal */}
       {showNewOrder && (

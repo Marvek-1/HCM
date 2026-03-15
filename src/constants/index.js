@@ -17,59 +17,105 @@ export const STATUS_CONFIG = {
 
 // Priority configurations
 export const PRIORITY_CONFIG = {
-  'High': { color: '#DC2626', bg: '#FEE2E2' },
-  'Medium': { color: '#D97706', bg: '#FEF3C7' },
-  'Low': { color: '#059669', bg: '#D1FAE5' },
+  'EMERGENCY': { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
+  'ROUTINE': { color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.1)' },
+  'STUDY': { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
 };
 
 const DEV_UNLOCK_ROLES = import.meta.env.VITE_DEV_UNLOCK_ROLES === 'true';
 
-// Navigation items by role
-export const getNavItems = (role) => {
-  if (DEV_UNLOCK_ROLES) {
-    return [
-      { id: 'dashboard', label: 'Dashboard' },
-      { id: 'orders', label: 'All Orders' },
-      { id: 'drafts', label: '📝 Drafts' },
-      { id: 'catalogue', label: '📦 Catalogue' },
-      { id: 'inventory', label: 'Inventory Management' },
-      { id: 'operations', label: '📊 Operations Center' },
-      { id: 'admin', label: '⚙️ Administration' },
-    ];
+// Navigation configuration with categories (Specific 6-point flow)
+export const NAV_CATEGORIES = [
+  { 
+    id: 'dashboard', 
+    label: 'Dashboard', 
+    icon: '🏠',
+    items: [
+      { id: 'dashboard', label: 'Overview', icon: '📊' }
+    ]
+  },
+  {
+    id: 'products',
+    label: 'Products',
+    icon: '🏷️',
+    items: [
+      { id: 'catalog', label: 'Product Catalog', icon: '🛍️' }
+    ]
+  },
+  {
+    id: 'orders',
+    label: 'Orders',
+    icon: '📋',
+    items: [
+      { id: 'orders', label: 'Order List', icon: '🧾' },
+      { id: 'drafts', label: 'Drafts', icon: '📝' }
+    ]
+  },
+  {
+    id: 'osl-ops',
+    label: 'OSL Operations',
+    icon: '⚡',
+    items: [
+      { id: 'inventory', label: 'Inventory List', icon: '📦' },
+      { id: 'operations', label: 'Stock Release & Ops', icon: '🧪' },
+      { id: 'warehouses', label: 'Warehouse Management', icon: '🏭' }
+    ]
+  },
+  {
+    id: 'lab',
+    label: 'Laboratory',
+    icon: '🔬',
+    items: [
+      { id: 'lab-dashboard', label: 'Lab Dashboard', icon: '📈' },
+      { id: 'orders', label: 'Lab Requests', icon: '🧪' }
+    ]
+  },
+  {
+    id: 'admin',
+    label: 'Admin',
+    icon: '⚙️',
+    items: [
+      { id: 'admin', label: 'System Controls', icon: '🛡️' }
+    ]
   }
+];
 
-  switch (role) {
-    case 'Country Office':
-      return [
-        { id: 'dashboard', label: 'Dashboard' },
-        { id: 'orders', label: 'My Orders' },
-        { id: 'drafts', label: '📝 Drafts' },
-        { id: 'catalogue', label: '📦 Catalogue' },
-      ];
-    case 'Laboratory Team':
-      return [
-        { id: 'dashboard', label: 'Dashboard' },
-        { id: 'orders', label: 'All Country Orders' },
-        { id: 'drafts', label: '📝 Drafts' },
-        { id: 'catalogue', label: '📦 Catalogue' },
-      ];
-    case 'OSL Team':
-      return [
-        { id: 'dashboard', label: 'Dashboard' },
-        { id: 'orders', label: 'Pending Approvals' },
-        { id: 'catalogue', label: '📦 Catalogue' },
-        { id: 'inventory', label: 'Inventory Management' },
-        { id: 'operations', label: '📊 Operations Center' },
-      ];
-    case 'Super Admin':
-      return [
-        { id: 'dashboard', label: 'Dashboard' },
-        { id: 'orders', label: 'All Orders' },
-        { id: 'catalogue', label: '📦 Catalogue' },
-        { id: 'inventory', label: 'Inventory Management' },
-        { id: 'admin', label: '⚙️ Administration' },
-      ];
-    default:
-      return [];
-  }
+export const getNavItems = (role) => {
+  // Deep clone categories to filter items based on role
+  const categories = JSON.parse(JSON.stringify(NAV_CATEGORIES));
+
+  return categories.map(category => {
+    category.items = category.items.filter(item => {
+      // Role-based filtering logic
+      if (role === 'Country Office') {
+        return ['dashboard', 'catalog', 'orders', 'drafts'].includes(item.id);
+      }
+      if (role === 'Laboratory Team') {
+        return ['dashboard', 'catalog', 'orders', 'drafts', 'lab-dashboard'].includes(item.id);
+      }
+      if (role === 'OSL Team') {
+        return ['dashboard', 'catalog', 'orders', 'inventory', 'operations', 'warehouses'].includes(item.id);
+      }
+      if (role === 'Super Admin') {
+        return true; // Access to everything
+      }
+      return false;
+    });
+    return category;
+  }).filter(cat => cat.items.length > 0);
+};
+
+// Comprehensive African Currency Configuration
+export const CURRENCY_CONFIG = {
+  USD: { symbol: '$', rate: 1, label: 'US Dollar', region: 'Global' },
+  ZAR: { symbol: 'R ', rate: 19.12, label: 'South African Rand', region: 'Southern Africa' },
+  KES: { symbol: 'KSh ', rate: 132.50, label: 'Kenyan Shilling', region: 'East Africa' },
+  NGN: { symbol: '₦', rate: 1450.00, label: 'Nigerian Naira', region: 'West Africa' },
+  EGP: { symbol: 'E£', rate: 47.85, label: 'Egyptian Pound', region: 'North Africa' },
+  GHS: { symbol: 'GH₵', rate: 14.20, label: 'Ghanaian Cedi', region: 'West Africa' },
+  RWF: { symbol: 'FRw ', rate: 1295.00, label: 'Rwandan Franc', region: 'East Africa' },
+  UGX: { symbol: 'USh ', rate: 3850.00, label: 'Ugandan Shilling', region: 'East Africa' },
+  ETB: { symbol: 'Br ', rate: 56.80, label: 'Ethiopian Birr', region: 'East Africa' },
+  XOF: { symbol: 'CFA ', rate: 608.50, label: 'West African CFA Franc', region: 'West Africa' },
+  XAF: { symbol: 'FCFA ', rate: 608.50, label: 'Central African CFA Franc', region: 'Central Africa' }
 };

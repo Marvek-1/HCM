@@ -163,11 +163,41 @@ export const ordersAPI = {
     return apiFetch(`/orders/${id}`);
   },
 
-  create: async (orderData) => {
+  create: async (orderData, idempotencyKey) => {
     return apiFetch('/orders', {
       method: 'POST',
+      headers: {
+        ...(idempotencyKey && { 'X-Idempotency-Key': idempotencyKey }),
+      },
       body: JSON.stringify(orderData),
     });
+  },
+
+  validateOrder: async (orderData, sessionId) => {
+    return apiFetch('/orders/validate', {
+      method: 'POST',
+      body: JSON.stringify({ ...orderData, sessionId }),
+    });
+  },
+
+  getReconciliation: async (id, params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiFetch(`/orders/${id}/reconciliation?${query}`);
+  },
+
+  applyEmergencyOverride: async (id, justification) => {
+    return apiFetch(`/orders/${id}/emergency-override`, {
+      method: 'POST',
+      body: JSON.stringify({ justification }),
+    });
+  },
+
+  getKPIs: async () => {
+    return apiFetch('/orders/analytics/kpis');
+  },
+
+  getTrends: async (days = 90) => {
+    return apiFetch(`/orders/analytics/trends?days=${days}`);
   },
 
   forwardToOSL: async (id, warehouseId, notes) => {
@@ -982,6 +1012,70 @@ export const aiAPI = {
   },
 };
 
+// Signals API
+export const signalsAPI = {
+  getAll: async () => {
+    return apiFetch('/signals');
+  },
+  getByCountry: async (country) => {
+    return apiFetch(`/signals/${country}`);
+  },
+  getRisk: async (country) => {
+    return apiFetch(`/signals/risk/${country}`);
+  },
+};
+
+// Analytics API
+export const analyticsAPI = {
+  getKPIs: async () => {
+    return apiFetch('/orders/analytics/kpis');
+  },
+  getTrends: async (days = 90) => {
+    return apiFetch(`/orders/analytics/trends?days=${days}`);
+  },
+};
+
+// Assets API
+export const assetsAPI = {
+  getCatalogue: async () => {
+    return apiFetch('/assets/catalogue');
+  },
+  validate: async (data) => {
+    return apiFetch('/assets/validate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+// Session API
+export const sessionAPI = {
+  init: async (data) => {
+    return apiFetch('/sessions/init', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  validate: async (sessionId) => {
+    return apiFetch(`/sessions/validate/${sessionId}`);
+  },
+  extend: async (sessionId, minutes = 5) => {
+    return apiFetch(`/sessions/extend/${sessionId}`, {
+      method: 'POST',
+      body: JSON.stringify({ minutes }),
+    });
+  },
+  release: async (sessionId) => {
+    return apiFetch(`/sessions/release/${sessionId}`, {
+      method: 'DELETE',
+    });
+  },
+  queue: async (protocol) => {
+    return apiFetch(`/sessions/queue/${protocol}`);
+  },
+};
+
+
 export default {
   auth: authAPI,
   orders: ordersAPI,
@@ -992,5 +1086,9 @@ export default {
   chat: chatAPI,
   warehouse: warehouseAPI,
   ai: aiAPI,
+  signals: signalsAPI,
+  analytics: analyticsAPI,
+  assets: assetsAPI,
+  sessions: sessionAPI,
   healthCheck,
 };
