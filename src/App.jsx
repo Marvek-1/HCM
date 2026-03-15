@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { authAPI, ordersAPI, commoditiesAPI } from './services/api';
+import { preloadProductImages } from './data/productImages';
 import './styles/ui-enhancements.css';
 import './styles/modern-ui.css';
 import './styles/unified-dashboard.css';
@@ -24,12 +25,23 @@ import SessionTimeoutWarning from './components/SessionTimeoutWarning';
 import useInactivityTimeout from './hooks/useInactivityTimeout';
 
 const DEV_UNLOCK_ROLES = import.meta.env.VITE_DEV_UNLOCK_ROLES === 'true';
+const DEV_MODE_SKIP_AUTH = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+
+// Test user for dev mode
+const DEV_TEST_USER = {
+  id: 'dev-super-admin',
+  email: 'super.admin@who.int',
+  name: 'Super Admin (Dev)',
+  role: 'Super Admin',
+  permissions: ['read', 'write', 'admin', 'approve', 'allocate'],
+  warehouse: 'all'
+};
 
 function App() {
   // Auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(DEV_MODE_SKIP_AUTH);
+  const [currentUser, setCurrentUser] = useState(DEV_MODE_SKIP_AUTH ? DEV_TEST_USER : null);
+  const [isLoading, setIsLoading] = useState(!DEV_MODE_SKIP_AUTH);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // App state
@@ -53,6 +65,15 @@ function App() {
   // Check authentication on mount
   useEffect(() => {
     const checkAuth = async () => {
+      // Preload product images for smooth display
+      preloadProductImages();
+      
+      if (DEV_MODE_SKIP_AUTH) {
+        // Skip auth check in dev mode
+        setIsLoading(false);
+        return;
+      }
+      
       if (authAPI.isAuthenticated()) {
         const storedUser = authAPI.getStoredUser();
         if (storedUser) {
