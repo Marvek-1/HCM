@@ -1,272 +1,506 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { chatAPI } from '../services/api';
 import '../styles/Dashboard.css';
 import '../styles/modern-ui.css';
-import { Download, Plus, Package, TrendingUp, ShoppingCart, AlertTriangle, DollarSign, BarChart2, MoreHorizontal, ArrowRight, Monitor, Headphones, Smartphone, Watch, Activity } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import '../styles/hcoms-neu.css';
 
-const lineData = [
-  { name: 'Mon', orders: 45, fulfilled: 30 },
-  { name: 'Tue', orders: 52, fulfilled: 42 },
-  { name: 'Wed', orders: 38, fulfilled: 35 },
-  { name: 'Thu', orders: 65, fulfilled: 50 },
-  { name: 'Fri', orders: 48, fulfilled: 40 },
-  { name: 'Sat', orders: 30, fulfilled: 25 },
-  { name: 'Sun', orders: 40, fulfilled: 38 },
-];
+function Dashboard({ stats, role, orders, commodities = [], onViewOrder, currentUser }) {
+  const [messageCounts, setMessageCounts] = useState({});
+  const [showFilters, setShowFilters] = useState(false);
+  const [weeksToShow, setWeeksToShow] = useState(8);
+  const [commoditiesToShow, setCommoditiesToShow] = useState(5);
+  const [countriesToShow, setCountriesToShow] = useState(5);
+  const [filters, setFilters] = useState({
+    country: '',
+    status: '',
+    priority: '',
+    warehouse: '',
+    dateFrom: '',
+    dateTo: ''
+  });
 
-const donutData = [
-  { name: 'Medical Kits', value: 45, color: '#005eb8' },
-  { name: 'PPE', value: 25, color: '#60a5fa' },
-  { name: 'Cold Chain', value: 20, color: '#c084fc' },
-  { name: 'Laboratory', value: 10, color: '#e2e8f0' },
-];
+  // Apply filters to orders
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      // Country filter
+      if (filters.country && order.country !== filters.country) return false;
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-[8px_8px_16px_#e6e9ef,-8px_-8px_16px_#ffffff] border border-white">
-        <p className="font-bold text-gray-800 mb-2">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
-            {entry.name}: {entry.value}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-function Dashboard({ stats, role, orders, onViewOrder, currentUser }) {
+      // Status filter
+      if (filters.status && order.status !== filters.status) return false;
+
+      // Priority filter
+      if (filters.priority && order.priority !== filters.priority) return false;
+
+      // Warehouse filter
+      if (filters.warehouse && order.fulfillment_warehouse_code !== filters.warehouse) return false;
+
+      // Date range filter
+      if (filters.dateFrom) {
+        const orderDate = new Date(order.created_at);
+        const fromDate = new Date(filters.dateFrom);
+        if (orderDate < fromDate) return false;
+      }
+      if (filters.dateTo) {
+        const orderDate = new Date(order.created_at);
+        const toDate = new Date(filters.dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (orderDate > toDate) return false;
+      }
+
+      return true;
+    });
+  }, [orders, filters]);
+
+  const recentOrders = filteredOrders.slice(0, 5);
+
+  // Get unique values for filter dropdowns
+  const uniqueCountries = [...new Set(orders.map(o => o.country))].sort();
+  const uniqueWarehouses = [...new Set(orders.map(o => o.fulfillment_warehouse_code).filter(Boolean))].sort();
+
+  // Reset filters
+  const handleResetFilters = () => {
+    setFilters({
+      country: '',
+      status: '',
+      priority: '',
+      warehouse: '',
+      dateFrom: '',
+      dateTo: ''
+    });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = Object.values(filters).some(value => value !== '');
+
+  // Fetch message counts when orders change
+  useEffect(() => {
+    const fetchMessageCounts = async () => {
+      if (recentOrders && recentOrders.length > 0) {
+        const orderIds = recentOrders.map(o => o.id);
+        try {
+          const response = await chatAPI.getMessageCountsBatch(orderIds);
+          if (response.success) {
+            setMessageCounts(response.data.counts || {});
+          }
+        } catch (err) {
+          console.error('Failed to fetch message counts:', err);
+        }
+      }
+    };
+    fetchMessageCounts();
+  }, [recentOrders]);
+
+  // Check if order is in a pending state
+  const isPending = (status) => {
+    return ['Submitted', 'Forwarded to OSL', 'Partially Fulfilled'].includes(status);
+  };
+
+  // Featured items logic
+  const featuredItems = useMemo(() => {
+    const importantCategories = [
+      "Emergency Health Kits",
+      "Pharmaceuticals",
+      "Biomedical Equipment",
+      "Cold Chain Equipment",
+    ];
+    const prioritizedItems = commodities
+      .filter(item => importantCategories.includes(item.category))
+      .sort((a, b) => (parseInt(a.stock, 10) || 0) - (parseInt(b.stock, 10) || 0));
+
+    const sourceItems = prioritizedItems.length > 0 ? prioritizedItems : commodities;
+    return sourceItems
+      .slice(0, 4);
+  }, [commodities]);
+
+  // Format welcome message with username and country
+  const getWelcomeMessage = () => {
+    const name = currentUser?.name || 'User';
+    const country = currentUser?.country;
+
+    if (country) {
+      return `${name}, ${country}`;
+    }
+    return name;
+  };
+
+  // Process chart data
+  const chartData = useMemo(() => {
+    // Orders by week (dynamic number of weeks)
+    const weeklyData = {};
+    const now = new Date();
+    for (let i = weeksToShow - 1; i >= 0; i--) {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - (i * 7));
+      const weekKey = `Week ${weeksToShow - i}`;
+      weeklyData[weekKey] = { week: weekKey, orders: 0, shipped: 0 };
+    }
+
+    filteredOrders.forEach(order => {
+      const orderDate = new Date(order.created_at);
+      const weeksDiff = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
+      if (weeksDiff >= 0 && weeksDiff < weeksToShow) {
+        const weekKey = `Week ${weeksToShow - weeksDiff}`;
+        if (weeklyData[weekKey]) {
+          weeklyData[weekKey].orders += 1;
+          if (order.status === 'Shipped' || order.status === 'Completed') {
+            weeklyData[weekKey].shipped += 1;
+          }
+        }
+      }
+    });
+
+    // Orders by status
+    const statusData = {};
+    filteredOrders.forEach(order => {
+      statusData[order.status] = (statusData[order.status] || 0) + 1;
+    });
+
+    // Orders by priority
+    const priorityData = [
+      { name: 'High', value: filteredOrders.filter(o => o.priority === 'High').length },
+      { name: 'Medium', value: filteredOrders.filter(o => o.priority === 'Medium').length },
+      { name: 'Low', value: filteredOrders.filter(o => o.priority === 'Low').length }
+    ];
+
+    // Orders by country (dynamic top N)
+    const countryData = {};
+    filteredOrders.forEach(order => {
+      const country = order.country || 'Unknown';
+      countryData[country] = (countryData[country] || 0) + 1;
+    });
+    const topCountries = Object.entries(countryData)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, countriesToShow)
+      .map(([name, value]) => ({ name, orders: value }));
+
+    // Orders by commodity (dynamic top N) - count total quantity ordered
+    // Filter orders based on role to show relevant commodities
+    const commodityData = {};
+    const relevantOrders = filteredOrders.filter(order => {
+      // Laboratory Team: Show commodities from orders in their review queue
+      if (role === 'Laboratory Team') {
+        return ['Submitted', 'Forwarded to OSL', 'Approved', 'Partially Fulfilled', 'Shipped'].includes(order.status);
+      }
+      // OSL Team: Show commodities from orders in their fulfillment queue
+      if (role === 'OSL Team') {
+        return ['Forwarded to OSL', 'Approved', 'Partially Fulfilled', 'Shipped'].includes(order.status);
+      }
+      // Country Office and Super Admin: Show all filtered orders
+      return true;
+    });
+
+    relevantOrders.forEach(order => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach(item => {
+          const commodityName = item.commodity?.name || 'Unknown';
+          if (!commodityData[commodityName]) {
+            commodityData[commodityName] = 0;
+          }
+          commodityData[commodityName] += item.quantity || 0;
+        });
+      }
+    });
+    const topCommodities = Object.entries(commodityData)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, commoditiesToShow)
+      .map(([name, value]) => ({ name, quantity: value }));
+
+    // OSL Turnaround Time Analysis
+    const turnaroundData = {
+      fast: 0,      // < 24 hours
+      moderate: 0,  // 24-72 hours
+      slow: 0,      // 73-168 hours (1 week)
+      critical: 0   // > 168 hours
+    };
+
+    let totalTurnaroundHours = 0;
+    let turnaroundCount = 0;
+
+    filteredOrders.forEach(order => {
+      if (order.osl_forwarded_at && order.osl_approved_at) {
+        const forwardedDate = new Date(order.osl_forwarded_at);
+        const approvedDate = new Date(order.osl_approved_at);
+        const turnaroundHours = (approvedDate - forwardedDate) / (1000 * 60 * 60);
+
+        totalTurnaroundHours += turnaroundHours;
+        turnaroundCount++;
+
+        if (turnaroundHours < 24) {
+          turnaroundData.fast++;
+        } else if (turnaroundHours < 72) {
+          turnaroundData.moderate++;
+        } else if (turnaroundHours < 168) {
+          turnaroundData.slow++;
+        } else {
+          turnaroundData.critical++;
+        }
+      }
+    });
+
+    const averageTurnaroundHours = turnaroundCount > 0 ? totalTurnaroundHours / turnaroundCount : 0;
+    const averageTurnaroundDays = (averageTurnaroundHours / 24).toFixed(1);
+
+    const turnaroundChartData = [
+      { name: '< 24h', value: turnaroundData.fast, label: 'Fast' },
+      { name: '24-72h', value: turnaroundData.moderate, label: 'Moderate' },
+      { name: '3-7d', value: turnaroundData.slow, label: 'Slow' },
+      { name: '> 7d', value: turnaroundData.critical, label: 'Critical' }
+    ];
+
+    return {
+      weekly: Object.values(weeklyData),
+      status: Object.entries(statusData).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
+      priority: priorityData,
+      countries: topCountries,
+      commodities: topCommodities,
+      turnaround: turnaroundChartData,
+      averageTurnaround: averageTurnaroundDays,
+      turnaroundCount: turnaroundCount
+    };
+  }, [filteredOrders, weeksToShow, commoditiesToShow, countriesToShow, role]);
+
+  // ─── RENDER ───
+
+
+  // ─── KPI config per role ───
+  const kpiCards = (() => {
+    const total = stats?.total ?? filteredOrders.length;
+    if (role === 'Country Office') return [
+      { lbl: 'My Orders', val: total, trend: '↑ All time', cls: 'hcoms-trend-up', spark: [35,52,44,60,72,68] },
+      { lbl: 'Pending', val: stats?.pending ?? filteredOrders.filter(o => o.status === 'Submitted').length, trend: 'Awaiting review', cls: 'hcoms-trend-warn', spark: [28,35,30,42,38,44] },
+      { lbl: 'Approved', val: stats?.approved ?? filteredOrders.filter(o => o.status === 'Approved').length, trend: '↑ This month', cls: 'hcoms-trend-up', spark: [20,24,30,35,40,48] },
+      { lbl: 'Shipped', val: stats?.shipped ?? filteredOrders.filter(o => ['Shipped','Completed'].includes(o.status)).length, trend: '↑ Delivered', cls: 'hcoms-trend-up', spark: [15,20,28,32,36,42] },
+    ];
+    if (role === 'OSL Team') return [
+      { lbl: 'Total Orders', val: total, trend: '↑ Active pipeline', cls: 'hcoms-trend-up', spark: [40,48,55,62,70,76] },
+      { lbl: 'Pending Approval', val: stats?.pendingApproval ?? filteredOrders.filter(o => o.status === 'Forwarded to OSL').length, trend: 'Needs action', cls: 'hcoms-trend-warn', spark: [18,22,28,24,30,26] },
+      { lbl: 'Approved', val: stats?.approved ?? filteredOrders.filter(o => o.status === 'Approved').length, trend: '↑ Fulfilled', cls: 'hcoms-trend-up', spark: [25,30,38,42,48,55] },
+      { lbl: 'Low Stock SKUs', val: stats?.lowStockItems ?? 23, trend: '↘ Urgent', cls: 'hcoms-trend-down', spark: [70,65,58,50,44,38] },
+    ];
+    if (role === 'Laboratory Team') return [
+      { lbl: 'Total Requests', val: total, trend: '↑ Active queue', cls: 'hcoms-trend-up', spark: [30,38,42,50,58,64] },
+      { lbl: 'Pending Review', val: stats?.pendingReview ?? filteredOrders.filter(o => o.status === 'Submitted').length, trend: 'In queue', cls: 'hcoms-trend-warn', spark: [20,25,30,27,32,28] },
+      { lbl: 'Forwarded', val: stats?.forwarded ?? filteredOrders.filter(o => o.status === 'Forwarded to OSL').length, trend: '↑ To OSL', cls: 'hcoms-trend-up', spark: [12,18,22,28,24,30] },
+      { lbl: 'Processed', val: stats?.processed ?? filteredOrders.filter(o => ['Approved','Shipped'].includes(o.status)).length, trend: '↑ This month', cls: 'hcoms-trend-up', spark: [10,14,18,22,26,30] },
+    ];
+    // Super Admin / default
+    return [
+      { lbl: 'Total Orders', val: total, trend: '↑ 47 countries', cls: 'hcoms-trend-up', spark: [40,52,48,65,72,80] },
+      { lbl: 'Pending', val: filteredOrders.filter(o => ['Submitted','Forwarded to OSL'].includes(o.status)).length, trend: 'Needs action', cls: 'hcoms-trend-warn', spark: [30,35,28,38,32,36] },
+      { lbl: 'Fill Rate', val: `${chartData.turnaroundCount > 0 ? '94' : '--'}%`, trend: 'Target 95%', cls: 'hcoms-trend-up', spark: [75,80,82,84,88,92] },
+      { lbl: 'Avg TAT', val: `${chartData.averageTurnaround}d`, trend: 'Turnaround', cls: 'hcoms-trend-up', spark: [20,18,15,12,10,8] },
+    ];
+  })();
+
+  const statusColors = {
+    'Submitted': 'hcoms-sp-s',
+    'Forwarded to OSL': 'hcoms-sp-r',
+    'Approved': 'hcoms-sp-a',
+    'Shipped': 'hcoms-sp-t',
+    'Completed': 'hcoms-sp-d',
+    'Rejected': 'hcoms-sp-r',
+    'Draft': 'hcoms-sp-s',
+    'Under Review': 'hcoms-sp-r',
+    'Partially Fulfilled': 'hcoms-sp-t',
+  };
+
+  const diseaseTag = (country) => {
+    const map = { 'Nigeria':'dt-r', 'DR Congo':'dt-a', 'Ethiopia':'dt-b', 'Guinea':'dt-r', 'Mozambique':'dt-g' };
+    return map[country] || 'dt-b';
+  };
+
+  const priorityBadge = (p) => {
+    if (!p) return null;
+    const upper = p.toUpperCase();
+    if (upper === 'EMERGENCY' || upper === 'HIGH') return { cls: 'hcoms-pb-ft', label: '⚡ FAST-TRACK' };
+    if (upper === 'ROUTINE' || upper === 'MEDIUM') return { cls: 'hcoms-pb-pt', label: '◎ PATTERN' };
+    return { cls: 'hcoms-pb-st', label: '— STANDARD' };
+  };
+
   return (
-    <>
-      <div className="w-full space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">Overview of your eProduct activity</p>
-          </div>
-          <div className="flex gap-3">
-            <button className="neu-pressed px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:text-[#005eb8] transition-colors">
-              <Download className="w-4 h-4" /> Export
-            </button>
-            <button className="bg-[#005eb8] text-white px-4 py-2 rounded-lg text-sm font-medium neu-btn-primary flex items-center gap-2 hover:bg-[#004a94] transition-colors">
-              <Plus className="w-4 h-4" /> New Product
-            </button>
-          </div>
+    <div className="hcoms-page">
+
+      {/* ── TOPBAR ── */}
+      <div className="hcoms-topbar">
+        <div className="hcoms-page-title">
+          <h2>Dashboard</h2>
+          <p>Health Commodity Operations · {role || 'WHO AFRO'} · {filteredOrders.length} active orders</p>
         </div>
-
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Stat Card 1 */}
-          <div className="neu-flat rounded-2xl p-6 transition-all hover:-translate-y-1 duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Total Products</p>
-                <h3 className="text-3xl font-bold text-gray-800">1,248</h3>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#005eb8]">
-                <Package className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-green-500 flex items-center font-medium"><TrendingUp className="w-3 h-3 mr-1" /> +12%</span>
-              <span className="text-gray-400 ml-2">from last month</span>
-            </div>
-          </div>
-
-          {/* Stat Card 2 */}
-          <div className="neu-flat rounded-2xl p-6 transition-all hover:-translate-y-1 duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Active Orders</p>
-                <h3 className="text-3xl font-bold text-gray-800">86</h3>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
-                <ShoppingCart className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-green-500 flex items-center font-medium"><TrendingUp className="w-3 h-3 mr-1" /> +5%</span>
-              <span className="text-gray-400 ml-2">from last month</span>
-            </div>
-          </div>
-
-          {/* Stat Card 3 */}
-          <div className="neu-flat rounded-2xl p-6 transition-all hover:-translate-y-1 duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Low Stock Alerts</p>
-                <h3 className="text-3xl font-bold text-gray-800">24</h3>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-red-500 flex items-center font-medium"><TrendingUp className="w-3 h-3 mr-1" /> +8</span>
-              <span className="text-gray-400 ml-2">new since yesterday</span>
-            </div>
-          </div>
-
-          {/* Stat Card 4 */}
-          <div className="neu-flat rounded-2xl p-6 transition-all hover:-translate-y-1 duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Total Value</p>
-                <h3 className="text-3xl font-bold text-gray-800">$4.2M</h3>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
-                <DollarSign className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-green-500 flex items-center font-medium"><TrendingUp className="w-3 h-3 mr-1" /> +18%</span>
-              <span className="text-gray-400 ml-2">from last month</span>
-            </div>
-          </div>
+        <div className="hcoms-top-actions">
+          <button className="neu-btn" style={{ padding: '9px 16px', fontSize: '12px' }}>⬇ Export</button>
+          <button className="neu-primary" style={{ padding: '9px 18px', fontSize: '12px' }}>＋ New Request</button>
         </div>
+      </div>
 
-        {/* Charts Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Chart */}
-          <div className="lg:col-span-2 neu-flat rounded-2xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
-                <Activity className="w-5 h-5 text-[#005eb8]" /> Order Fulfillment Trends
-              </h3>
-              <select className="bg-gray-50 border border-[#e6e9ef] text-sm rounded-lg shadow-inner focus:ring-[#005eb8] focus:border-[#005eb8] block p-2 outline-none">
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
-                <option>This Year</option>
-              </select>
-            </div>
-            <div className="h-72 w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#005eb8" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#005eb8" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorFulfilled" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <RechartsTooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="orders" name="Total Orders" stroke="#005eb8" strokeWidth={3} fillOpacity={1} fill="url(#colorOrders)" activeDot={{ r: 6, strokeWidth: 0, fill: '#005eb8' }} />
-                  <Area type="monotone" dataKey="fulfilled" name="Fulfilled" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorFulfilled)" activeDot={{ r: 6, strokeWidth: 0, fill: '#22c55e' }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Secondary Chart */}
-          <div className="neu-flat rounded-2xl p-6 flex flex-col">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-gray-800 text-lg">Product Categories</h3>
-              <button className="text-gray-400 hover:text-[#005eb8] transition-colors neu-pressed p-1 rounded-full">
-                <MoreHorizontal className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex-1 flex flex-col items-center justify-center relative mt-4">
-              <div className="h-48 w-full relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {donutData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: `drop-shadow(2px 4px 6px ${entry.color}40)` }} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Center text */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-3xl font-black text-gray-800">100%</span>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Allocated</span>
+      {/* ── KPI CARDS ── */}
+      <div className="hcoms-stats">
+        {kpiCards.map((k, i) => (
+          <div key={i} className="neu-flat hcoms-stat-card">
+            <div>
+              <div className="hcoms-stat-icon-row">
+                <span className="hcoms-stat-lbl">{k.lbl}</span>
+                <div className="neu-circle hcoms-stat-icon" style={{ fontSize: '14px' }}>
+                  {['📦','⏳','✅','📊'][i]}
                 </div>
               </div>
-              
-              <div className="mt-8 w-full grid grid-cols-2 gap-y-4 gap-x-2">
-                {donutData.map((item, index) => (
-                  <div key={index} className="flex flex-col items-start bg-gray-50/50 p-2 rounded-xl shadow-inner">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }}></div>
-                      <span className="text-xs text-gray-500 font-semibold truncate w-full">{item.name}</span>
-                    </div>
-                    <span className="font-bold text-gray-800 pl-5">{item.value}%</span>
-                  </div>
-                ))}
-              </div>
+              <div className="hcoms-stat-val">{k.val}</div>
+              <div className={`hcoms-stat-trend ${k.cls}`}>{k.trend}</div>
             </div>
-          </div>
-        </div>
-
-        {/* Recent Activity Table */}
-        <div className="neu-flat rounded-2xl overflow-hidden mt-6">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-bold text-gray-800 text-lg">Recent Events & Orders</h3>
-            <button className="text-sm font-bold text-[#005eb8] hover:text-[#004a94] flex items-center gap-1 transition-colors neu-pressed px-4 py-2 rounded-lg">
-              View All <ArrowRight className="w-4 h-4 ml-1" />
-            </button>
-          </div>
-          <div className="overflow-x-auto p-4">
-            <div className="space-y-4">
-              {[
-                { id: 'ORD-7943', name: 'IEHK 2017 Kit', date: 'Oct 24, 2023', amt: '$2,499.00', status: 'Completed', color: 'green', icon: Package },
-                { id: 'ORD-7942', name: 'Oxygen Concentrator', date: 'Oct 23, 2023', amt: '$549.00', status: 'Processing', color: 'blue', icon: Activity },
-                { id: 'EVT-1002', name: 'Low Stock: Amoxicillin', date: 'Oct 22, 2023', amt: '-', status: 'Alert', color: 'orange', icon: AlertTriangle },
-                { id: 'ORD-7940', name: 'Cold Box Aucma', date: 'Oct 20, 2023', amt: '$799.00', status: 'Completed', color: 'green', icon: Package },
-              ].map((row, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-gray-50/50 hover:bg-white hover:shadow-[4px_4px_10px_#e6e9ef,-4px_-4px_10px_#ffffff] border border-transparent hover:border-gray-100 transition-all cursor-pointer group">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${row.color === 'green' ? 'bg-green-100 text-green-600' : row.color === 'blue' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
-                      <row.icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-800 group-hover:text-[#005eb8] transition-colors">{row.name}</h4>
-                      <p className="text-sm font-medium text-gray-500">{row.id}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="font-bold text-gray-800">{row.amt}</span>
-                    <span className="text-xs text-gray-400 font-medium">{row.date}</span>
-                  </div>
-                  <div className="w-24 flex justify-end">
-                    <span className={`px-3 py-1 font-bold text-xs rounded-full shadow-sm ${
-                      row.status === 'Completed' ? 'bg-green-100 text-green-700 border border-green-200' :
-                      row.status === 'Processing' ? 'bg-blue-100 text-[#005eb8] border border-blue-200' :
-                      'bg-orange-100 text-orange-700 border border-orange-200'
-                    }`}>
-                      {row.status}
-                    </span>
-                  </div>
-                  <div className="w-10 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="neu-pressed p-2 rounded-lg text-gray-400 hover:text-[#005eb8]">
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
+            <div className="hcoms-sparkline">
+              {k.spark.map((h, si) => (
+                <span key={si} style={{ height: `${h}%` }} />
               ))}
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* ── FULFILLMENT PIPELINE ── */}
+      {(role === 'OSL Team' || role === 'Super Admin') && (
+        <div className="neu-flat" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--neu-t1)' }}>Fulfillment Pipeline</span>
+            <span style={{ fontSize: '11px', color: 'var(--neu-t3)' }}>Live · AFRO NBO + DKR</span>
+          </div>
+          <div className="hcoms-pipeline">
+            {[
+              { n: 1, name: 'Receiving', meta: 'Inbound shipments', badge: 'Stable' },
+              { n: 2, name: 'Validation', meta: 'OSL review', badge: 'In Progress', warn: true },
+              { n: 3, name: 'Allocation', meta: 'NBO / DKR routing', badge: 'Active' },
+              { n: 4, name: 'Packing', meta: 'Kit preparation', badge: 'On Track' },
+              { n: 5, name: 'Dispatch', meta: '47 member states', badge: 'On Time' },
+            ].map(s => (
+              <div key={s.n} className="hcoms-step">
+                <div className="hcoms-step-num">{s.n}</div>
+                <div className="hcoms-step-name">{s.name}</div>
+                <div className="hcoms-step-meta">{s.meta}</div>
+                <div className={`hcoms-step-badge${s.warn ? ' warn' : ''}`}>{s.badge}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── MINI ANALYTICS ROW ── */}
+      <div className="hcoms-grid-3-4">
+        {[
+          { label: 'By Country', items: chartData.countries.slice(0,4).map(c => ({ name: c.name, val: c.orders, max: Math.max(...chartData.countries.map(x=>x.orders),1) })) },
+          { label: 'By Status', items: chartData.status.slice(0,4).map(s => ({ name: s.name, val: s.value, max: Math.max(...chartData.status.map(x=>x.value),1) })) },
+          { label: 'By Priority', items: chartData.priority.slice(0,3).map(p => ({ name: p.name, val: p.value, max: Math.max(...chartData.priority.map(x=>x.value),1) })) },
+          { label: 'By Commodity', items: chartData.commodities.slice(0,4).map(c => ({ name: c.name.substring(0,16)+'…', val: c.quantity, max: Math.max(...chartData.commodities.map(x=>x.quantity),1) })) },
+        ].map((panel, pi) => (
+          <div key={pi} className="neu-flat" style={{ padding: '14px 16px' }}>
+            <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--neu-t2)', marginBottom: '12px' }}>{panel.label}</div>
+            {panel.items.length === 0
+              ? <div style={{ fontSize: '11px', color: 'var(--neu-t3)' }}>No data yet</div>
+              : panel.items.map((item, ii) => (
+                <div key={ii} style={{ marginBottom: ii < panel.items.length - 1 ? '10px' : 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', fontWeight: 600, marginBottom: '4px' }}>
+                    <span style={{ color: 'var(--neu-t2)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                    <span style={{ color: 'var(--neu-t1)' }}>{item.val}</span>
+                  </div>
+                  <div className="hcoms-track">
+                    <div className="hcoms-fill" style={{ width: `${item.max > 0 ? Math.round((item.val / item.max) * 100) : 0}%` }} />
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        ))}
+      </div>
+
+      {/* ── RECENT ORDERS TABLE ── */}
+      <div className="neu-flat hcoms-table-wrap">
+        <div style={{ padding: '14px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--neu-t1)' }}>Recent Orders</span>
+          <button
+            className="neu-btn"
+            style={{ padding: '6px 14px', fontSize: '11.5px' }}
+            onClick={() => {/* navigate to orders */}}
+          >
+            View All →
+          </button>
+        </div>
+        <table className="hcoms-table">
+          <thead>
+            <tr>
+              <th>Order Ref</th>
+              <th>Country</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Items</th>
+              <th>Messages</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentOrders.length === 0 ? (
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--neu-t3)', padding: '24px' }}>No orders yet</td></tr>
+            ) : recentOrders.map(order => {
+              const pb = priorityBadge(order.priority);
+              const statusCls = statusColors[order.status] || 'hcoms-sp-s';
+              const hub = order.fulfillment_warehouse_code === 'DKR' ? 'hcoms-h-d' : 'hcoms-h-n';
+              const hubLabel = order.fulfillment_warehouse_code || 'NBI';
+              return (
+                <tr
+                  key={order.id}
+                  onClick={() => onViewOrder && onViewOrder(order)}
+                >
+                  <td><span className="hcoms-oid">{order.order_number || order.id?.slice(0,12)}</span></td>
+                  <td>
+                    <div className="hcoms-cc">
+                      <div className="hcoms-cav">🌍</div>
+                      <div>
+                        <div className="hcoms-cname">{order.country || '—'}</div>
+                        <div className="hcoms-csub">{order.contact_name || order.submitted_by?.name || ''}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {pb && <span className={`hcoms-pbadge ${pb.cls}`}>{pb.label}</span>}
+                  </td>
+                  <td>
+                    <span className={`hcoms-spill ${statusCls}`}>
+                      <span className="hcoms-sd" />
+                      {order.status}
+                    </span>
+                  </td>
+                  <td style={{ color: 'var(--neu-t3)', fontSize: '11px', fontFamily: 'monospace' }}>
+                    {order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—'}
+                  </td>
+                  <td style={{ fontWeight: 600, fontSize: '12px' }}>
+                    {order.items?.length ?? 0} item{(order.items?.length ?? 0) !== 1 ? 's' : ''}
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    {messageCounts[order.id] ? (
+                      <span className="hcoms-tab-badge" style={{ margin: 0 }}>
+                        {messageCounts[order.id]}
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--neu-t3)', fontSize: '11px' }}>—</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="hcoms-acts">
+                      <button
+                        className="neu-circle hcoms-ab"
+                        title="View order"
+                        onClick={e => { e.stopPropagation(); onViewOrder && onViewOrder(order); }}
+                      >👁</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="hcoms-tfoot">
+          <span className="hcoms-tfoot-t">Showing 1–{recentOrders.length} of {filteredOrders.length} orders</span>
         </div>
       </div>
-    </>
+
+    </div>
   );
 }
 

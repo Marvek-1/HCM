@@ -4,6 +4,7 @@ import { getStatusStyle, getPriorityStyle, formatDateTime, getTimeElapsed, getPe
 import { chatAPI } from '../services/api';
 import { exportOrdersToCSV } from '../utils/exportHelpers';
 import '../styles/OrdersView.css';
+import '../styles/hcoms-neu.css';
 
 function OrdersView({ orders, role, onNewOrder, onViewOrder }) {
   const [filter, setFilter] = useState('all');
@@ -27,6 +28,9 @@ function OrdersView({ orders, role, onNewOrder, onViewOrder }) {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Selected row highlight
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   // Fetch message counts when orders change
   useEffect(() => {
@@ -225,352 +229,253 @@ function OrdersView({ orders, role, onNewOrder, onViewOrder }) {
     }
   };
 
+  // ─── STATUS → NEU CLASS MAP ───
+  const statusNeuClass = (status) => {
+    const m = {
+      'Submitted': 'hcoms-sp-s',
+      'Draft': 'hcoms-sp-s',
+      'Forwarded to OSL': 'hcoms-sp-r',
+      'Under Review': 'hcoms-sp-r',
+      'Approved': 'hcoms-sp-a',
+      'Shipped': 'hcoms-sp-t',
+      'Completed': 'hcoms-sp-d',
+      'Rejected': 'hcoms-sp-r',
+      'Partially Fulfilled': 'hcoms-sp-t',
+    };
+    return m[status] || 'hcoms-sp-s';
+  };
+
+  const priorityNeuBadge = (p) => {
+    if (!p) return null;
+    const u = p.toUpperCase();
+    if (u === 'EMERGENCY' || u === 'HIGH') return { cls: 'hcoms-pb-ft', label: '⚡ FAST-TRACK' };
+    if (u === 'ROUTINE' || u === 'MEDIUM') return { cls: 'hcoms-pb-pt', label: '◎ PATTERN' };
+    return { cls: 'hcoms-pb-st', label: '— STANDARD' };
+  };
+
+  const hubClass = (code) => code === 'DKR' ? 'hcoms-h-d' : 'hcoms-h-n';
+
+  // KPI summary
+  const kpiData = [
+    { lbl: 'Total Orders', val: filteredOrders.length, icon: '📦', cls: 'hcoms-trend-up', trend: 'All filtered' },
+    { lbl: 'Pending', val: filteredOrders.filter(o => ['Submitted','Under Review'].includes(o.status)).length, icon: '⏳', cls: 'hcoms-trend-warn', trend: 'Needs action' },
+    { lbl: 'Fast-Track', val: filteredOrders.filter(o => ['EMERGENCY','HIGH'].includes((o.priority||'').toUpperCase())).length, icon: '⚡', cls: 'hcoms-trend-down', trend: 'Active signals' },
+    { lbl: 'Completed', val: filteredOrders.filter(o => ['Completed','Shipped'].includes(o.status)).length, icon: '✅', cls: 'hcoms-trend-up', trend: '↑ This month' },
+  ];
+
   return (
-    <div className="orders-view">
-      <div className="orders-header">
-        <h2 className="orders-title">{getTitle()}</h2>
-        <div className="orders-header-actions">
-          <button onClick={handleExportOrders} className="orders-export-btn">
-            Export CSV
-          </button>
+    <div className="hcoms-page">
+
+      {/* ── TOPBAR ── */}
+      <div className="hcoms-topbar">
+        <div className="hcoms-page-title">
+          <h2>{getTitle()}</h2>
+          <p>{filteredOrders.length} orders · WHO AFRO 47 member states</p>
+        </div>
+        <div className="hcoms-top-actions">
+          <button className="neu-circle" style={{ width: 38, height: 38, fontSize: 14 }} onClick={handleExportOrders}>⬇</button>
+          <button className="neu-btn" style={{ padding: '9px 16px', fontSize: '12px' }} onClick={handleExportOrders}>Export CSV</button>
           {(role === 'Country Office' || role === 'Laboratory Team') && (
-            <button onClick={onNewOrder} className="orders-new-btn">
-              <span className="orders-new-btn-icon">+</span> New Order
-            </button>
+            <button className="neu-primary" style={{ padding: '9px 18px', fontSize: '12px' }} onClick={onNewOrder}>＋ New Request</button>
           )}
         </div>
       </div>
 
-      {/* Super Admin Info Banner */}
-      {role === 'Super Admin' && (
-        <div className="admin-info-banner">
-          <span className="info-icon">ℹ️</span>
-          <span>Viewing all orders from all countries. Use filters below to narrow results.</span>
-        </div>
-      )}
+      {/* ── KPI STRIP ── */}
+      <div className="hcoms-stats">
+        {kpiData.map((k, i) => (
+          <div key={i} className="neu-flat hcoms-stat-card" style={{ minHeight: 90 }}>
+            <div className="hcoms-stat-icon-row">
+              <span className="hcoms-stat-lbl">{k.lbl}</span>
+              <div className="neu-circle hcoms-stat-icon" style={{ fontSize: 14 }}>{k.icon}</div>
+            </div>
+            <div className="hcoms-stat-val">{k.val}</div>
+            <div className={`hcoms-stat-trend ${k.cls}`}>{k.trend}</div>
+          </div>
+        ))}
+      </div>
 
-      {/* Search Bar */}
-      <div className="orders-search-bar">
-        <input
-          type="text"
-          placeholder="Search by Order ID, Country, PATEO Ref, Priority, or Status..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        {searchTerm && (
+      {/* ── FILTER BAR ── */}
+      <div className="neu-flat hcoms-filter-bar">
+        {/* Tab filters */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1 }}>
+          {getFilterOptions().map(f => (
+            <button
+              key={f}
+              className={`hcoms-tab${filter === f ? ' active' : ''}`}
+              onClick={() => { setFilter(f); setCurrentPage(1); }}
+            >
+              {f === 'all' ? 'All Orders' : f}
+              {f !== 'all' && (
+                <span className="hcoms-tab-badge">
+                  {orders.filter(o => o.status === f).length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="neu-pressed hcoms-search">
+          <span style={{ color: 'var(--neu-t3)', fontSize: 13 }}>🔍</span>
+          <input
+            placeholder="Search PATEO, country, disease…"
+            value={searchTerm}
+            onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+          />
+        </div>
+
+        {/* Selects */}
+        <select
+          className="hcoms-fsel"
+          value={filters.country}
+          onChange={e => setFilters(f => ({ ...f, country: e.target.value }))}
+        >
+          <option value="">All Countries</option>
+          {[...new Set(orders.map(o => o.country))].filter(Boolean).sort().map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+
+        <select
+          className="hcoms-fsel"
+          value={filters.priority}
+          onChange={e => setFilters(f => ({ ...f, priority: e.target.value }))}
+        >
+          <option value="">All Priority</option>
+          <option value="EMERGENCY">Fast-Track</option>
+          <option value="ROUTINE">Pattern</option>
+          <option value="STUDY">Standard</option>
+        </select>
+
+        {Object.values(filters).some(v => v !== '') && (
           <button
-            onClick={() => setSearchTerm('')}
-            className="search-clear-btn"
-            title="Clear search"
+            className="neu-btn"
+            style={{ padding: '7px 14px', fontSize: '11.5px', color: 'var(--hc-red)' }}
+            onClick={() => setFilters({ country:'', priority:'', status:'', warehouse:'', split:'', dateFrom:'', dateTo:'', minItems:'', maxItems:'' })}
           >
-            ✕
+            ✕ Clear
           </button>
         )}
       </div>
 
-      {/* Filter Tabs */}
-      <div className="orders-filters">
-        {getFilterOptions().map(status => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`orders-filter-btn ${filter === status ? 'active' : ''}`}
-          >
-            {status === 'all' ? 'All' : status}
-          </button>
-        ))}
-        <button
-          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-          className={`orders-filter-btn advanced-toggle ${showAdvancedFilters ? 'active' : ''}`}
-        >
-          🔍 {showAdvancedFilters ? 'Hide' : 'Show'} Filters
-        </button>
-      </div>
-
-      {/* Advanced Filters */}
-      {showAdvancedFilters && (
-        <div className="advanced-filters">
-          <div className="filter-row">
-            <div className="filter-group">
-              <label className="filter-label">Country</label>
-              <select
-                value={filters.country}
-                onChange={(e) => setFilters({ ...filters, country: e.target.value })}
-                className="filter-select"
-              >
-                <option value="">All Countries</option>
-                {uniqueCountries.map(country => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">Priority</label>
-              <select
-                value={filters.priority}
-                onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-                className="filter-select"
-              >
-                <option value="">All Priorities</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="filter-select"
-              >
-                <option value="">All Status</option>
-                <option value="Submitted">Submitted</option>
-                <option value="Forwarded to OSL">Forwarded to OSL</option>
-                <option value="Approved">Approved</option>
-                <option value="Partially Fulfilled">Partially Fulfilled</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">Warehouse</label>
-              <select
-                value={filters.warehouse}
-                onChange={(e) => setFilters({ ...filters, warehouse: e.target.value })}
-                className="filter-select"
-              >
-                <option value="">All Warehouses</option>
-                {uniqueWarehouses.map(warehouse => (
-                  <option key={warehouse} value={warehouse}>{warehouse}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">Split Order</label>
-              <select
-                value={filters.split}
-                onChange={(e) => setFilters({ ...filters, split: e.target.value })}
-                className="filter-select"
-              >
-                <option value="">All</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="filter-row">
-            <div className="filter-group">
-              <label className="filter-label">Min Items</label>
-              <input
-                type="number"
-                min="0"
-                value={filters.minItems}
-                onChange={(e) => setFilters({ ...filters, minItems: e.target.value })}
-                className="filter-input"
-                placeholder="Min"
-              />
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">Max Items</label>
-              <input
-                type="number"
-                min="0"
-                value={filters.maxItems}
-                onChange={(e) => setFilters({ ...filters, maxItems: e.target.value })}
-                className="filter-input"
-                placeholder="Max"
-              />
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">Date From</label>
-              <input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="filter-input"
-              />
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">Date To</label>
-              <input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                className="filter-input"
-              />
-            </div>
-
-            <div className="filter-group">
-              <button onClick={handleResetFilters} className="reset-filters-btn">
-                Reset All
-              </button>
-            </div>
-          </div>
-
-          <div className="filter-summary">
-            Showing <strong>{startIndex + 1}-{Math.min(endIndex, filteredOrders.length)}</strong> of <strong>{filteredOrders.length}</strong> {filteredOrders.length !== orders.length && `(filtered from ${orders.length} total)`}
-          </div>
-        </div>
-      )}
-
-      {/* Orders Table */}
-      <div className="orders-table-container">
-        <table className="orders-table">
+      {/* ── ORDERS TABLE ── */}
+      <div className="neu-flat hcoms-table-wrap">
+        <table className="hcoms-table">
           <thead>
             <tr>
-              <th>Order ID</th>
+              <th>Order Ref</th>
               <th>Country</th>
-              <th>Items</th>
-              <th>PATEO Ref</th>
+              <th>Disease / Category</th>
               <th>Priority</th>
+              <th>Hub</th>
               <th>Status</th>
-              <th>Warehouse</th>
-              <th>Split</th>
-              <th>Date</th>
+              <th>Submitted</th>
+              <th>Items</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {paginatedOrders.length === 0 ? (
               <tr>
-                <td colSpan={9} className="orders-empty">No orders found</td>
+                <td colSpan={9} style={{ textAlign: 'center', color: 'var(--neu-t3)', padding: '32px', fontSize: '13px' }}>
+                  No orders match your filters
+                </td>
               </tr>
-            ) : (
-              paginatedOrders.map(order => {
-                const statusStyle = getStatusStyle(order.status);
-                const priorityStyle = getPriorityStyle(order.priority);
-                const orderDate = formatDateTime(order.created_at, { short: true });
-                const itemCount = order.items ? order.items.length : 0;
-                const showPendingCounter = isPending(order.status);
-                const pendingTime = getTimeElapsed(order.created_at);
-                const durationClass = getPendingDurationClass(order.created_at);
-                
-                return (
-                  <tr key={order.id} onClick={() => onViewOrder(order)}>
-                    <td className="orders-table-id">
-                      <div className="order-id-cell">
-                        <span>{order.order_number}</span>
-                        {messageCounts[order.id] > 0 && (
-                          <span className="message-count-badge" title={`${messageCounts[order.id]} message(s)`}>
-                            💬 {messageCounts[order.id]}
-                          </span>
-                        )}
+            ) : paginatedOrders.map(order => {
+              const pb = priorityNeuBadge(order.priority);
+              const statusCls = statusNeuClass(order.status);
+              const whCode = order.fulfillment_warehouse_code || 'NBI';
+              const categories = order.items?.map(i => i.commodity?.category).filter(Boolean);
+              const primaryCat = categories?.[0] || '';
+              const diseaseLabel = primaryCat.includes('Emergency') ? '🜂 Emergency Kit'
+                : primaryCat.includes('PPE') ? '🜂 PPE'
+                : primaryCat.includes('Pharma') ? '🜂 Pharma'
+                : primaryCat ? `🜂 ${primaryCat.split(' ')[0]}`
+                : order.disease || '🜂 Routine';
+
+              return (
+                <tr
+                  key={order.id}
+                  className={selectedOrder?.id === order.id ? 'hcoms-row-sel' : ''}
+                  onClick={() => { setSelectedOrder(order); onViewOrder && onViewOrder(order); }}
+                >
+                  <td><span className="hcoms-oid">{order.order_number || `ORD-${order.id?.slice(0,8)}`}</span></td>
+                  <td>
+                    <div className="hcoms-cc">
+                      <div className="hcoms-cav">🌍</div>
+                      <div>
+                        <div className="hcoms-cname">{order.country || '—'}</div>
+                        <div className="hcoms-csub">{order.submitted_by?.name || order.contact_name || ''}</div>
                       </div>
-                    </td>
-                    <td className="orders-table-country">{order.country}</td>
-                    <td className="orders-table-items">{itemCount} item(s)</td>
-                    <td className="orders-table-pateo">{order.pateo_ref}</td>
-                    <td>
-                      <span className={`priority-badge priority-${order.priority?.toLowerCase()}`}>
-                        {order.priority}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge status-${order.status?.toLowerCase().replace(/\s+/g, '-')}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="orders-table-warehouse">
-                      {order.fulfillment_warehouse_code ? (
-                        <span className="warehouse-info">
-                          {order.fulfillment_warehouse_code}
-                        </span>
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
-                    <td className="orders-table-split">
-                      {order.isSplit ? (
-                        <span className="split-badge split-yes">Yes</span>
-                      ) : order.fulfillmentWarehouses && order.fulfillmentWarehouses.length > 0 ? (
-                        <span className="split-badge split-no">No</span>
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
-                    <td className="orders-table-date">
-                      <div className="date-with-pending">
-                        <span className="order-date">{orderDate}</span>
-                        {showPendingCounter && pendingTime && (
-                          <span className={`pending-counter ${durationClass}`}>
-                            ⏱ Pending {pendingTime}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
+                    </div>
+                  </td>
+                  <td>
+                    <span className="hcoms-dtag hcoms-dt-b">{diseaseLabel}</span>
+                  </td>
+                  <td>
+                    {pb && <span className={`hcoms-pbadge ${pb.cls}`}>{pb.label}</span>}
+                  </td>
+                  <td>
+                    <span className={`hcoms-hchip ${hubClass(whCode)}`}>{whCode}</span>
+                  </td>
+                  <td>
+                    <span className={`hcoms-spill ${statusCls}`}>
+                      <span className="hcoms-sd" />
+                      {order.status}
+                    </span>
+                  </td>
+                  <td style={{ color: 'var(--neu-t3)', fontSize: '11px', fontFamily: 'monospace' }}>
+                    {order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' }) : '—'}
+                  </td>
+                  <td style={{ fontWeight: 600, fontSize: '12px' }}>
+                    {order.items?.length ?? 0}
+                  </td>
+                  <td>
+                    <div className="hcoms-acts">
+                      <button
+                        className="neu-circle hcoms-ab"
+                        title="View order"
+                        onClick={e => { e.stopPropagation(); onViewOrder && onViewOrder(order); }}
+                      >👁</button>
+                      <button className="neu-circle hcoms-ab" title="More">⋯</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
-        {/* Pagination Controls */}
-        {filteredOrders.length > 0 && (
-          <div className="pagination-container">
-            <div className="pagination-info">
-              <label className="items-per-page">
-                Show
-                <select value={itemsPerPage} onChange={handleItemsPerPageChange} className="items-select">
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-                per page
-              </label>
-              <span className="pagination-summary">
-                Showing {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length}
-              </span>
-            </div>
-
-            {totalPages > 1 && (
-              <div className="pagination-controls">
+        {/* ── PAGINATION ── */}
+        <div className="hcoms-tfoot">
+          <span className="hcoms-tfoot-t">
+            Showing {Math.min((currentPage-1)*itemsPerPage+1, filteredOrders.length)}–{Math.min(currentPage*itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
+          </span>
+          <div className="hcoms-pages">
+            <button
+              className={`hcoms-pg${currentPage === 1 ? ' disabled' : ''}`}
+              onClick={() => setCurrentPage(p => Math.max(1, p-1))}
+            >‹</button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pg = i + 1;
+              return (
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="pagination-btn"
-                  title="Previous page"
-                >
-                  ‹
-                </button>
-
-                {getPageNumbers().map((page, index) => (
-                  page === '...' ? (
-                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
-                  ) : (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
-                    >
-                      {page}
-                    </button>
-                  )
-                ))}
-
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="pagination-btn"
-                  title="Next page"
-                >
-                  ›
-                </button>
-              </div>
-            )}
+                  key={pg}
+                  className={`hcoms-pg${currentPage === pg ? ' active' : ''}`}
+                  onClick={() => setCurrentPage(pg)}
+                >{pg}</button>
+              );
+            })}
+            {totalPages > 5 && <span style={{ color: 'var(--neu-t3)', fontSize: 12 }}>…</span>}
+            <button
+              className={`hcoms-pg${currentPage === totalPages ? ' disabled' : ''}`}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))}
+            >›</button>
           </div>
-        )}
+        </div>
       </div>
+
     </div>
   );
 }

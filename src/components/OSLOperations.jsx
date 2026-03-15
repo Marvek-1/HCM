@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { oslAPI, commoditiesAPI } from '../services/api';
 import { formatDateTime, formatDateRange } from '../utils/helpers';
 import '../styles/OSLOperations.css';
+import '../styles/hcoms-neu.css';
 
 function OSLOperations({ warehouses = [], oslAdminLevel }) {
   // OSL permission helpers
@@ -286,823 +287,380 @@ function OSLOperations({ warehouses = [], oslAdminLevel }) {
     return icons[type] || '📦';
   };
 
+
+  // ─── RENDER HELPERS ───
+  const tabDefs = [
+    { id: 'dashboard', label: '📊 Dashboard' },
+    { id: 'outbound',  label: '📤 Outbound' },
+    { id: 'inventory', label: '📦 Inventory' },
+    { id: 'procurement', label: '🛒 Procurement' },
+  ];
+
+  const statusNeu = (s) => {
+    const m = {
+      'Pending': 'hcoms-sp-r', 'In Transit': 'hcoms-sp-t',
+      'Delivered': 'hcoms-sp-d', 'Shipped': 'hcoms-sp-t',
+      'Completed': 'hcoms-sp-d', 'Draft': 'hcoms-sp-s',
+      'Approved': 'hcoms-sp-a', 'Rejected': 'hcoms-sp-r',
+      'Cancelled': 'hcoms-sp-r',
+    };
+    return m[s] || 'hcoms-sp-s';
+  };
+
   return (
-    <div className="osl-operations">
-      <div className="osl-header">
-        <h2>OSL Operations Center</h2>
-        <p>Manage outbound shipments, inventory, and procurement</p>
+    <div className="hcoms-page">
+
+      {/* ── TOPBAR ── */}
+      <div className="hcoms-topbar">
+        <div className="hcoms-page-title">
+          <h2>OSL Operations Center</h2>
+          <p>Outbound shipments · Inventory · Procurement · Nairobi & Dakar hubs</p>
+        </div>
+        <div className="hcoms-top-actions">
+          <span className="hcoms-hchip hcoms-h-n" style={{ fontSize: 11, padding: '5px 11px' }}>NBI Hub</span>
+          <span className="hcoms-hchip hcoms-h-d" style={{ fontSize: 11, padding: '5px 11px' }}>DKR Hub</span>
+          {canEdit && (
+            <button className="neu-primary" style={{ padding: '9px 18px', fontSize: '12px' }}>
+              ＋ New Operation
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="osl-tabs">
-        <button
-          className={`osl-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          📊 Dashboard
-        </button>
-        <button
-          className={`osl-tab ${activeTab === 'outbound' ? 'active' : ''}`}
-          onClick={() => setActiveTab('outbound')}
-        >
-          📤 Outbound
-        </button>
-        <button
-          className={`osl-tab ${activeTab === 'inventory' ? 'active' : ''}`}
-          onClick={() => setActiveTab('inventory')}
-        >
-          📦 Inventory
-        </button>
-        <button
-          className={`osl-tab ${activeTab === 'procurement' ? 'active' : ''}`}
-          onClick={() => setActiveTab('procurement')}
-        >
-          🛒 Procurement
-        </button>
+      {/* ── TABS ── */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        {tabDefs.map(t => (
+          <button
+            key={t.id}
+            className={`hcoms-tab${activeTab === t.id ? ' active' : ''}`}
+            onClick={() => setActiveTab(t.id)}
+          >{t.label}</button>
+        ))}
       </div>
 
-      {/* Tab Content */}
-      <div className="osl-content">
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && dashboardData && (
-          <div className="dashboard-tab">
-            <div className="dashboard-grid">
-              {/* Procurement Summary */}
-              <div className="dashboard-card">
-                <h3>🛒 Procurement Overview</h3>
-                <div className="stat-grid">
-                  <div className="stat-item">
-                    <span className="stat-value">{dashboardData.procurement?.total_orders || 0}</span>
-                    <span className="stat-label">Total POs (90 days)</span>
+      {/* ══════════════════════════════
+          TAB: DASHBOARD
+      ══════════════════════════════ */}
+      {activeTab === 'dashboard' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* KPI strip from dashboardData */}
+          <div className="hcoms-stats">
+            {[
+              { lbl: 'Total POs', val: dashboardData?.procurement?.total_orders ?? '—', icon: '🛒', trend: '90 day window', cls: 'hcoms-trend-up' },
+              { lbl: 'In Transit', val: dashboardData?.procurement?.in_transit ?? '—', icon: '🚚', trend: 'Active shipments', cls: 'hcoms-trend-up' },
+              { lbl: 'Pending', val: dashboardData?.procurement?.pending_orders ?? '—', icon: '⏳', trend: 'Awaiting action', cls: 'hcoms-trend-warn' },
+              { lbl: 'Total Value', val: dashboardData?.procurement?.total_value ? `$${parseFloat(dashboardData.procurement.total_value).toLocaleString()}` : '—', icon: '💰', trend: 'USD', cls: 'hcoms-trend-up' },
+            ].map((k, i) => (
+              <div key={i} className="neu-flat hcoms-stat-card">
+                <div className="hcoms-stat-icon-row">
+                  <span className="hcoms-stat-lbl">{k.lbl}</span>
+                  <div className="neu-circle hcoms-stat-icon" style={{ fontSize: 14 }}>{k.icon}</div>
+                </div>
+                <div className="hcoms-stat-val" style={{ fontSize: 22 }}>{k.val}</div>
+                <div className={`hcoms-stat-trend ${k.cls}`}>{k.trend}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Warehouse status cards */}
+          <div className="hcoms-grid-2">
+            <div className="neu-flat" style={{ padding: '16px 20px' }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--neu-t1)', marginBottom: 14 }}>🏭 Warehouse Status</div>
+              {dashboardData?.warehouses?.length ? dashboardData.warehouses.map(w => (
+                <div key={w.id} style={{ padding: '12px 0', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{w.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--neu-t3)' }}>{w.code} · {w.location || 'AFRO Region'}</div>
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-value">{dashboardData.procurement?.pending_orders || 0}</span>
-                    <span className="stat-label">Pending</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-value">{dashboardData.procurement?.in_transit || 0}</span>
-                    <span className="stat-label">In Transit</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-value">${parseFloat(dashboardData.procurement?.total_value || 0).toLocaleString()}</span>
-                    <span className="stat-label">Total Value</span>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <span className="hcoms-spill hcoms-sp-s" style={{ fontSize: 10 }}>
+                      <span className="hcoms-sd" />
+                      {w.total_items ?? 0} SKUs
+                    </span>
+                    <span className={`hcoms-hchip ${w.code === 'DKR' ? 'hcoms-h-d' : 'hcoms-h-n'}`}>{w.code}</span>
                   </div>
                 </div>
-              </div>
+              )) : (
+                <div style={{ color: 'var(--neu-t3)', fontSize: 12, padding: '16px 0' }}>No warehouse data loaded. Check API connection.</div>
+              )}
+            </div>
 
-              {/* Warehouse Summary */}
-              <div className="dashboard-card">
-                <h3>🏭 Warehouse Status</h3>
-                <div className="warehouse-list">
-                  {dashboardData.warehouses?.map(w => (
-                    <div key={w.id} className="warehouse-item">
-                      <div className="warehouse-name">{w.name} ({w.code})</div>
-                      <div className="warehouse-stats">
-                        <span>{w.total_products} products</span>
-                        <span>{parseInt(w.total_stock).toLocaleString()} units</span>
-                        {w.low_stock_items > 0 && (
-                          <span className="low-stock-badge">⚠️ {w.low_stock_items} low</span>
-                        )}
+            {/* Low stock alerts */}
+            <div className="neu-flat" style={{ padding: '16px 20px' }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--neu-t1)', marginBottom: 14 }}>⚠️ Low Stock Alerts</div>
+              {dashboardData?.lowStock?.length ? dashboardData.lowStock.slice(0, 6).map((item, i) => (
+                <div key={i} style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, fontWeight: 600, marginBottom: 3 }}>
+                    <span style={{ color: 'var(--neu-t2)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name || item.commodity_name}</span>
+                    <span style={{ color: item.stock < 10 ? 'var(--hc-red)' : 'var(--hc-amber)' }}>{item.stock ?? 0} left</span>
+                  </div>
+                  <div className="hcoms-track">
+                    <div className="hcoms-fill" style={{ width: `${Math.min(100, ((item.stock ?? 0) / (item.reorder_level ?? 100)) * 100)}%`, background: item.stock < 10 ? 'linear-gradient(90deg, #f4a227, #e84855)' : undefined }} />
+                  </div>
+                </div>
+              )) : (
+                <div style={{ color: 'var(--neu-t3)', fontSize: 12, padding: '16px 0' }}>No low-stock alerts at this time.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════
+          TAB: OUTBOUND SHIPMENTS
+      ══════════════════════════════ */}
+      {activeTab === 'outbound' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="hcoms-filter-bar neu-flat">
+            <div style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>Outbound Shipments</div>
+            <select
+              className="hcoms-fsel"
+              value={shipmentFilter.status}
+              onChange={e => setShipmentFilter(f => ({ ...f, status: e.target.value }))}
+            >
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="In Transit">In Transit</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+            <select
+              className="hcoms-fsel"
+              value={shipmentFilter.warehouseId}
+              onChange={e => setShipmentFilter(f => ({ ...f, warehouseId: e.target.value }))}
+            >
+              <option value="">All Hubs</option>
+              {warehouses.map(w => <option key={w.id} value={w.id}>{w.name} ({w.code})</option>)}
+            </select>
+            {canEdit && (
+              <button className="neu-primary" style={{ padding: '8px 16px', fontSize: 12 }}>＋ Shipment</button>
+            )}
+          </div>
+
+          <div className="neu-flat hcoms-table-wrap">
+            <table className="hcoms-table">
+              <thead>
+                <tr>
+                  <th>Shipment Ref</th>
+                  <th>Order Ref</th>
+                  <th>Destination</th>
+                  <th>Hub</th>
+                  <th>Status</th>
+                  <th>Carrier</th>
+                  <th>ETA</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {shipments.length === 0 ? (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--neu-t3)', padding: 28 }}>No shipments loaded — API or data pending</td></tr>
+                ) : shipments.map(s => (
+                  <tr key={s.id}>
+                    <td><span className="hcoms-oid">{s.shipment_number || s.id?.slice(0,12)}</span></td>
+                    <td><span className="hcoms-oid" style={{ color: 'var(--neu-t3)' }}>{s.order_number || '—'}</span></td>
+                    <td>
+                      <div className="hcoms-cname">{s.destination_country || s.destination || '—'}</div>
+                      <div className="hcoms-csub">{s.consignee || ''}</div>
+                    </td>
+                    <td><span className={`hcoms-hchip ${s.warehouse_code === 'DKR' ? 'hcoms-h-d' : 'hcoms-h-n'}`}>{s.warehouse_code || 'NBI'}</span></td>
+                    <td>
+                      <span className={`hcoms-spill ${statusNeu(s.status)}`}>
+                        <span className="hcoms-sd" />{s.status}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 12, color: 'var(--neu-t2)' }}>{s.carrier || '—'}</td>
+                    <td style={{ fontSize: 11, color: 'var(--neu-t3)', fontFamily: 'monospace' }}>
+                      {s.estimated_delivery ? new Date(s.estimated_delivery).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—'}
+                    </td>
+                    <td>
+                      <div className="hcoms-acts">
+                        <button className="neu-circle hcoms-ab" title="View">👁</button>
+                        {canEdit && <button className="neu-circle hcoms-ab" title="Edit">✏️</button>}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="hcoms-tfoot">
+              <span className="hcoms-tfoot-t">
+                {shipmentPagination.total} total shipments · Page {shipmentPagination.page}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* Low Stock Alerts */}
-              <div className="dashboard-card alerts-card">
-                <h3>⚠️ Low Stock Alerts</h3>
-                {dashboardData.lowStockAlerts?.length > 0 ? (
-                  <div className="alerts-list">
-                    {dashboardData.lowStockAlerts.slice(0, 5).map((alert, idx) => (
-                      <div key={idx} className="alert-item">
-                        <span className="alert-commodity">{alert.commodity_name}</span>
-                        <span className="alert-warehouse">{alert.warehouse_code}</span>
-                        <span className="alert-qty">{alert.current_stock} {alert.unit}</span>
+      {/* ══════════════════════════════
+          TAB: INVENTORY / STOCK MOVEMENTS
+      ══════════════════════════════ */}
+      {activeTab === 'inventory' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="hcoms-filter-bar neu-flat">
+            <div style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>Stock Movements</div>
+            <select
+              className="hcoms-fsel"
+              value={movementFilter.warehouseId}
+              onChange={e => setMovementFilter(f => ({ ...f, warehouseId: e.target.value }))}
+            >
+              <option value="">All Hubs</option>
+              {warehouses.map(w => <option key={w.id} value={w.id}>{w.name} ({w.code})</option>)}
+            </select>
+            <select
+              className="hcoms-fsel"
+              value={movementFilter.movementType}
+              onChange={e => setMovementFilter(f => ({ ...f, movementType: e.target.value }))}
+            >
+              <option value="">All Types</option>
+              <option value="Inbound">Inbound</option>
+              <option value="Outbound">Outbound</option>
+              <option value="Transfer">Transfer</option>
+              <option value="Adjustment">Adjustment</option>
+            </select>
+            {canEdit && (
+              <button className="neu-primary" style={{ padding: '8px 16px', fontSize: 12 }}
+                onClick={() => setShowMovementModal(true)}>＋ Record Movement</button>
+            )}
+          </div>
+
+          <div className="neu-flat hcoms-table-wrap">
+            <table className="hcoms-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Commodity</th>
+                  <th>Type</th>
+                  <th>Hub</th>
+                  <th>Qty</th>
+                  <th>Reason</th>
+                  <th>Ref</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stockMovements.length === 0 ? (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--neu-t3)', padding: 28 }}>No stock movements recorded</td></tr>
+                ) : stockMovements.map(m => (
+                  <tr key={m.id}>
+                    <td style={{ fontSize: 11, color: 'var(--neu-t3)', fontFamily: 'monospace' }}>
+                      {m.created_at ? new Date(m.created_at).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) : '—'}
+                    </td>
+                    <td>
+                      <div className="hcoms-cname">{m.commodity?.name || m.commodity_name || '—'}</div>
+                      <div className="hcoms-csub">{m.commodity?.code || ''}</div>
+                    </td>
+                    <td>
+                      <span className={`hcoms-pbadge ${m.movement_type === 'Inbound' ? 'hcoms-pb-pt' : m.movement_type === 'Outbound' ? 'hcoms-pb-ft' : 'hcoms-pb-st'}`}>
+                        {m.movement_type}
+                      </span>
+                    </td>
+                    <td><span className={`hcoms-hchip ${m.warehouse?.code === 'DKR' ? 'hcoms-h-d' : 'hcoms-h-n'}`}>{m.warehouse?.code || 'NBI'}</span></td>
+                    <td style={{ fontWeight: 700, fontSize: 13, color: m.movement_type === 'Outbound' ? 'var(--hc-red)' : 'var(--hc-green)' }}>
+                      {m.movement_type === 'Outbound' ? '-' : '+'}{m.quantity ?? 0}
+                    </td>
+                    <td style={{ fontSize: 12, color: 'var(--neu-t2)' }}>{m.reason || '—'}</td>
+                    <td><span className="hcoms-oid">{m.reference || m.id?.slice(0,8)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="hcoms-tfoot">
+              <span className="hcoms-tfoot-t">{movementPagination.total} movements · Page {movementPagination.page}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════
+          TAB: PROCUREMENT
+      ══════════════════════════════ */}
+      {activeTab === 'procurement' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="hcoms-filter-bar neu-flat">
+            <div style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>Purchase Orders</div>
+            <select
+              className="hcoms-fsel"
+              value={poFilter.status}
+              onChange={e => setPoFilter(f => ({ ...f, status: e.target.value }))}
+            >
+              <option value="">All Status</option>
+              <option value="Draft">Draft</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="In Transit">In Transit</option>
+              <option value="Completed">Completed</option>
+            </select>
+            {canEdit && (
+              <button className="neu-btn" style={{ padding: '8px 14px', fontSize: 12 }}
+                onClick={() => setShowSupplierModal(true)}>+ Supplier</button>
+            )}
+            {canEdit && (
+              <button className="neu-primary" style={{ padding: '8px 16px', fontSize: 12 }}
+                onClick={() => setShowPOModal(true)}>＋ Purchase Order</button>
+            )}
+          </div>
+
+          <div className="neu-flat hcoms-table-wrap">
+            <table className="hcoms-table">
+              <thead>
+                <tr>
+                  <th>PO Number</th>
+                  <th>Supplier</th>
+                  <th>Items</th>
+                  <th>Total Value</th>
+                  <th>Status</th>
+                  <th>Expected</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {purchaseOrders.length === 0 ? (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--neu-t3)', padding: 28 }}>No purchase orders yet</td></tr>
+                ) : purchaseOrders.map(po => (
+                  <tr key={po.id} onClick={() => setSelectedPO(po)} style={{ cursor: 'pointer' }}>
+                    <td><span className="hcoms-oid">{po.po_number || po.id?.slice(0,12)}</span></td>
+                    <td>
+                      <div className="hcoms-cname">{po.supplier?.name || '—'}</div>
+                      <div className="hcoms-csub">{po.supplier?.country || ''}</div>
+                    </td>
+                    <td style={{ fontWeight: 600 }}>{po.items?.length ?? po.line_count ?? 0} lines</td>
+                    <td style={{ fontWeight: 700 }}>${parseFloat(po.total_value || 0).toLocaleString()}</td>
+                    <td>
+                      <span className={`hcoms-spill ${statusNeu(po.status)}`}>
+                        <span className="hcoms-sd" />{po.status}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 11, color: 'var(--neu-t3)', fontFamily: 'monospace' }}>
+                      {po.expected_delivery ? new Date(po.expected_delivery).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) : '—'}
+                    </td>
+                    <td>
+                      <div className="hcoms-acts">
+                        <button className="neu-circle hcoms-ab">👁</button>
+                        {canEdit && <button className="neu-circle hcoms-ab">✏️</button>}
                       </div>
-                    ))}
-                    {dashboardData.lowStockAlerts.length > 5 && (
-                      <div className="more-alerts">+{dashboardData.lowStockAlerts.length - 5} more</div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="no-alerts">✓ All stock levels healthy</div>
-                )}
-              </div>
-
-              {/* Stock Movement Summary */}
-              <div className="dashboard-card">
-                <h3>📊 Movement Summary (30 days)</h3>
-                <div className="movement-summary">
-                  {dashboardData.movements?.map((m, idx) => (
-                    <div key={idx} className="movement-item">
-                      <span className="movement-type">{getMovementTypeIcon(m.movement_type)} {m.movement_type}</span>
-                      <span className="movement-count">{m.count} transactions</span>
-                      <span className="movement-qty">{parseInt(m.total_quantity).toLocaleString()} units</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="hcoms-tfoot">
+              <span className="hcoms-tfoot-t">{poPagination.total} purchase orders · Page {poPagination.page}</span>
             </div>
           </div>
-        )}
 
-        {/* Outbound Tab */}
-        {activeTab === 'outbound' && (
-          <div className="outbound-tab">
-            <div className="tab-toolbar">
-              <div className="filters">
-                <select
-                  value={shipmentFilter.status}
-                  onChange={(e) => { 
-                    const newStatus = e.target.value;
-                    setShipmentFilter({ ...shipmentFilter, status: newStatus }); 
-                    fetchShipments(1, { status: newStatus }); 
-                  }}
-                >
-                  <option value="">All Statuses</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Shipped">Shipped</option>
-                  <option value="In Transit">In Transit</option>
-                  <option value="Delivered">Delivered</option>
-                </select>
-                <select
-                  value={shipmentFilter.warehouseId}
-                  onChange={(e) => { 
-                    const newWarehouseId = e.target.value;
-                    setShipmentFilter({ ...shipmentFilter, warehouseId: newWarehouseId }); 
-                    fetchShipments(1, { warehouseId: newWarehouseId }); 
-                  }}
-                >
-                  <option value="">All Warehouses</option>
-                  {warehouses.map(w => (
-                    <option key={w.id} value={w.id}>{w.name}</option>
-                  ))}
-                </select>
+          {/* Suppliers quick list */}
+          {suppliers.length > 0 && (
+            <div className="neu-flat" style={{ padding: '14px 18px' }}>
+              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>Registered Suppliers</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {suppliers.map(s => (
+                  <span key={s.id} className="hcoms-dtag hcoms-dt-b">{s.name} · {s.country}</span>
+                ))}
               </div>
             </div>
-
-            {isLoading ? (
-              <div className="loading">Loading shipments...</div>
-            ) : (
-              <div className="shipments-table-container">
-                <table className="osl-table">
-                  <thead>
-                    <tr>
-                      <th>Order #</th>
-                      <th>Destination</th>
-                      <th>Warehouse</th>
-                      <th>Carrier</th>
-                      <th>Tracking</th>
-                      <th>ETA</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shipments.map(s => (
-                      <tr key={s.id}>
-                        <td>{s.orderNumber}</td>
-                        <td>{s.destinationCountry}</td>
-                        <td>{s.warehouseCode}</td>
-                        <td>{s.shippingCompany}</td>
-                        <td>{s.trackingNumber || '-'}</td>
-                        <td>
-                          {formatDateRange(s.estimatedDeliveryDateFrom, s.estimatedDeliveryDateTo)}
-                        </td>
-                        <td><span className={`status-badge ${getStatusBadgeClass(s.status)}`}>{s.status}</span></td>
-                        <td>
-                          <select
-                            value={s.status}
-                            onChange={(e) => handleUpdateShipment(s.id, { status: e.target.value })}
-                            className="status-select"
-                          >
-                            <option value="Pending">Pending</option>
-                            <option value="Shipped">Shipped</option>
-                            <option value="In Transit">In Transit</option>
-                            <option value="Delivered">Delivered</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {shipmentPagination.totalPages > 1 && (
-              <div className="pagination">
-                <button disabled={shipmentPagination.page === 1} onClick={() => fetchShipments(shipmentPagination.page - 1)}>← Prev</button>
-                <span>Page {shipmentPagination.page} of {shipmentPagination.totalPages}</span>
-                <button disabled={shipmentPagination.page === shipmentPagination.totalPages} onClick={() => fetchShipments(shipmentPagination.page + 1)}>Next →</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Inventory Tab */}
-        {activeTab === 'inventory' && (
-          <div className="inventory-tab">
-            <div className="tab-toolbar">
-              <div className="filters">
-                <select
-                  value={movementFilter.warehouseId}
-                  onChange={(e) => { 
-                    const newWarehouseId = e.target.value;
-                    setMovementFilter({ ...movementFilter, warehouseId: newWarehouseId }); 
-                    fetchStockMovements(1, { warehouseId: newWarehouseId }); 
-                  }}
-                >
-                  <option value="">All Warehouses</option>
-                  {warehouses.map(w => (
-                    <option key={w.id} value={w.id}>{w.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={movementFilter.movementType}
-                  onChange={(e) => { 
-                    const newType = e.target.value;
-                    setMovementFilter({ ...movementFilter, movementType: newType }); 
-                    fetchStockMovements(1, { movementType: newType }); 
-                  }}
-                >
-                  <option value="">All Movement Types</option>
-                  <option value="Inbound">Inbound</option>
-                  <option value="Outbound">Outbound</option>
-                  <option value="Transfer">Transfer</option>
-                  <option value="Adjustment">Adjustment</option>
-                  <option value="Return">Return</option>
-                </select>
-              </div>
-              {canEdit && (
-                <button className="btn-primary" onClick={() => setShowMovementModal(true)}>
-                  + Record Movement
-                </button>
-              )}
-              {isViewOnly && (
-                <span className="view-only-badge">View Only</span>
-              )}
-            </div>
-
-            {isLoading ? (
-              <div className="loading">Loading movements...</div>
-            ) : (
-              <div className="movements-table-container">
-                <table className="osl-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Type</th>
-                      <th>Warehouse</th>
-                      <th>Commodity</th>
-                      <th>Quantity</th>
-                      <th>Reference</th>
-                      <th>Performed By</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stockMovements.map(m => (
-                      <tr key={m.id}>
-                        <td>{formatDateTime(m.createdAt, { short: true })}</td>
-                        <td>
-                          <span className={`movement-badge ${m.movementType.toLowerCase()}`}>
-                            {getMovementTypeIcon(m.movementType)} {m.movementType}
-                          </span>
-                        </td>
-                        <td>
-                          {m.warehouseCode}
-                          {m.toWarehouseCode && ` → ${m.toWarehouseCode}`}
-                        </td>
-                        <td>{m.commodityName}</td>
-                        <td className={m.movementType === 'Outbound' ? 'qty-negative' : 'qty-positive'}>
-                          {m.movementType === 'Outbound' ? '-' : '+'}{m.quantity} {m.commodityUnit}
-                        </td>
-                        <td>{m.referenceType ? `${m.referenceType} #${m.referenceId}` : '-'}</td>
-                        <td>{m.performedBy}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {movementPagination.totalPages > 1 && (
-              <div className="pagination">
-                <button disabled={movementPagination.page === 1} onClick={() => fetchStockMovements(movementPagination.page - 1)}>← Prev</button>
-                <span>Page {movementPagination.page} of {movementPagination.totalPages}</span>
-                <button disabled={movementPagination.page === movementPagination.totalPages} onClick={() => fetchStockMovements(movementPagination.page + 1)}>Next →</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Procurement Tab */}
-        {activeTab === 'procurement' && (
-          <div className="procurement-tab">
-            <div className="tab-toolbar">
-              <div className="filters">
-                <select
-                  value={poFilter.status}
-                  onChange={(e) => { 
-                    const newStatus = e.target.value;
-                    setPoFilter({ ...poFilter, status: newStatus }); 
-                    fetchPurchaseOrders(1, { status: newStatus }); 
-                  }}
-                >
-                  <option value="">All Statuses</option>
-                  <option value="Draft">Draft</option>
-                  <option value="Submitted">Submitted</option>
-                  <option value="Confirmed">Confirmed</option>
-                  <option value="Shipped">Shipped</option>
-                  <option value="Partially Received">Partially Received</option>
-                  <option value="Received">Received</option>
-                </select>
-                <select
-                  value={poFilter.supplierId}
-                  onChange={(e) => { 
-                    const newSupplierId = e.target.value;
-                    setPoFilter({ ...poFilter, supplierId: newSupplierId }); 
-                    fetchPurchaseOrders(1, { supplierId: newSupplierId }); 
-                  }}
-                >
-                  <option value="">All Suppliers</option>
-                  {suppliers.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-              {canEdit ? (
-                <div className="toolbar-actions">
-                  <button className="btn-secondary" onClick={() => setShowSupplierModal(true)}>
-                    + Add Supplier
-                  </button>
-                  <button className="btn-primary" onClick={() => setShowPOModal(true)}>
-                    + Create PO
-                  </button>
-                </div>
-              ) : (
-                <span className="view-only-badge">View Only</span>
-              )}
-            </div>
-
-            {isLoading ? (
-              <div className="loading">Loading purchase orders...</div>
-            ) : (
-              <div className="po-table-container">
-                <table className="osl-table">
-                  <thead>
-                    <tr>
-                      <th>PO Number</th>
-                      <th>Supplier</th>
-                      <th>Warehouse</th>
-                      <th>Order Date</th>
-                      <th>Expected</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {purchaseOrders.map(po => (
-                      <tr key={po.id}>
-                        <td><strong>{po.poNumber}</strong></td>
-                        <td>{po.supplierName}</td>
-                        <td>{po.warehouseCode}</td>
-                        <td>{formatDateTime(po.orderDate, { short: true })}</td>
-                        <td>{formatDateTime(po.expectedDeliveryDate, { dateOnly: true, short: true })}</td>
-                        <td>${po.totalAmount.toLocaleString()}</td>
-                        <td><span className={`status-badge ${getStatusBadgeClass(po.status)}`}>{po.status}</span></td>
-                        <td>
-                          <button className="btn-link" onClick={() => setSelectedPO(po)}>View</button>
-                          {po.status === 'Draft' && (
-                            <button className="btn-link" onClick={() => handleUpdatePOStatus(po.id, 'Submitted')}>Submit</button>
-                          )}
-                          {po.status === 'Submitted' && (
-                            <button className="btn-link" onClick={() => handleUpdatePOStatus(po.id, 'Confirmed')}>Confirm</button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {poPagination.totalPages > 1 && (
-              <div className="pagination">
-                <button disabled={poPagination.page === 1} onClick={() => fetchPurchaseOrders(poPagination.page - 1)}>← Prev</button>
-                <span>Page {poPagination.page} of {poPagination.totalPages}</span>
-                <button disabled={poPagination.page === poPagination.totalPages} onClick={() => fetchPurchaseOrders(poPagination.page + 1)}>Next →</button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Stock Movement Modal */}
-      {showMovementModal && (
-        <div className="modal-overlay">
-          <div className="modal movement-modal">
-            <div className="modal-header">
-              <h3>Record Stock Movement</h3>
-              <button className="modal-close" onClick={() => setShowMovementModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Movement Type *</label>
-                <select
-                  value={newMovement.movementType}
-                  onChange={(e) => setNewMovement({ ...newMovement, movementType: e.target.value })}
-                >
-                  <option value="Adjustment">Adjustment</option>
-                  <option value="Inbound">Inbound</option>
-                  <option value="Outbound">Outbound</option>
-                  <option value="Transfer">Transfer</option>
-                  <option value="Return">Return</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>{newMovement.movementType === 'Transfer' ? 'From Warehouse *' : 'Warehouse *'}</label>
-                <select
-                  value={newMovement.warehouseId}
-                  onChange={(e) => setNewMovement({ ...newMovement, warehouseId: e.target.value })}
-                >
-                  <option value="">Select warehouse...</option>
-                  {warehouses.map(w => (
-                    <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
-                  ))}
-                </select>
-              </div>
-              {newMovement.movementType === 'Transfer' && (
-                <div className="form-group">
-                  <label>To Warehouse *</label>
-                  <select
-                    value={newMovement.toWarehouseId}
-                    onChange={(e) => setNewMovement({ ...newMovement, toWarehouseId: e.target.value })}
-                  >
-                    <option value="">Select destination...</option>
-                    {warehouses.filter(w => w.id.toString() !== newMovement.warehouseId).map(w => (
-                      <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="form-group">
-                <label>Commodity *</label>
-                <select
-                  value={newMovement.commodityId}
-                  onChange={(e) => setNewMovement({ ...newMovement, commodityId: e.target.value })}
-                >
-                  <option value="">Select commodity...</option>
-                  {commodities.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} ({c.unit})</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Quantity *</label>
-                <input
-                  type="number"
-                  value={newMovement.quantity}
-                  onChange={(e) => setNewMovement({ ...newMovement, quantity: parseInt(e.target.value) || 0 })}
-                  min="1"
-                />
-              </div>
-              <div className="form-group">
-                <label>Reason</label>
-                <input
-                  type="text"
-                  value={newMovement.reason}
-                  onChange={(e) => setNewMovement({ ...newMovement, reason: e.target.value })}
-                  placeholder="e.g., Inventory adjustment, Stock correction"
-                />
-              </div>
-              <div className="form-group">
-                <label>Notes</label>
-                <textarea
-                  value={newMovement.notes}
-                  onChange={(e) => setNewMovement({ ...newMovement, notes: e.target.value })}
-                  rows={2}
-                />
-              </div>
-            </div>
-             <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setShowMovementModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={handleCreateMovement}>Record Movement</button>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Supplier Modal */}
-      {showSupplierModal && (
-        <div className="modal-overlay">
-          <div className="modal supplier-modal">
-            <div className="modal-header">
-              <h3>Add Supplier</h3>
-              <button className="modal-close" onClick={() => setShowSupplierModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Supplier Name *</label>
-                  <input
-                    type="text"
-                    value={newSupplier.name}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Code *</label>
-                  <input
-                    type="text"
-                    value={newSupplier.code}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, code: e.target.value.toUpperCase() })}
-                    maxLength={10}
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Contact Name</label>
-                  <input
-                    type="text"
-                    value={newSupplier.contactName}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, contactName: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Contact Email</label>
-                  <input
-                    type="email"
-                    value={newSupplier.contactEmail}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, contactEmail: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Contact Phone</label>
-                  <input
-                    type="text"
-                    value={newSupplier.contactPhone}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, contactPhone: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Country</label>
-                  <input
-                    type="text"
-                    value={newSupplier.country}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, country: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Lead Time (Days)</label>
-                  <input
-                    type="number"
-                    value={newSupplier.leadTimeDays}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, leadTimeDays: parseInt(e.target.value) || 30 })}
-                    min="1"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Payment Terms</label>
-                  <input
-                    type="text"
-                    value={newSupplier.paymentTerms}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, paymentTerms: e.target.value })}
-                    placeholder="e.g., Net 30"
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Address</label>
-                <textarea
-                  value={newSupplier.address}
-                  onChange={(e) => setNewSupplier({ ...newSupplier, address: e.target.value })}
-                  rows={2}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowSupplierModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleCreateSupplier}>Add Supplier</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Purchase Order Modal */}
-      {showPOModal && (
-        <div className="modal-overlay">
-          <div className="modal po-modal">
-            <div className="modal-header">
-              <h3>Create Purchase Order</h3>
-              <button className="modal-close" onClick={() => setShowPOModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Supplier *</label>
-                  <select
-                    value={newPO.supplierId}
-                    onChange={(e) => setNewPO({ ...newPO, supplierId: e.target.value })}
-                  >
-                    <option value="">Select supplier...</option>
-                    {suppliers.map(s => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Destination Warehouse *</label>
-                  <select
-                    value={newPO.warehouseId}
-                    onChange={(e) => setNewPO({ ...newPO, warehouseId: e.target.value })}
-                  >
-                    <option value="">Select warehouse...</option>
-                    {warehouses.map(w => (
-                      <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Expected Delivery Date</label>
-                  <input
-                    type="date"
-                    value={newPO.expectedDeliveryDate}
-                    onChange={(e) => setNewPO({ ...newPO, expectedDeliveryDate: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Shipping Method</label>
-                  <input
-                    type="text"
-                    value={newPO.shippingMethod}
-                    onChange={(e) => setNewPO({ ...newPO, shippingMethod: e.target.value })}
-                    placeholder="e.g., Air Freight, Sea Freight"
-                  />
-                </div>
-              </div>
-
-              <div className="po-items-section">
-                <div className="po-items-header">
-                  <h4>Order Items</h4>
-                  <button className="btn btn-sm btn-secondary" onClick={addPOItem}>+ Add Item</button>
-                </div>
-                {newPO.items.length === 0 ? (
-                  <div className="no-items">No items added yet</div>
-                ) : (
-                  <div className="po-items-list">
-                    {newPO.items.map((item, idx) => (
-                      <div key={idx} className="po-item-row">
-                        <select
-                          value={item.commodityId}
-                          onChange={(e) => updatePOItem(idx, 'commodityId', e.target.value)}
-                          className="commodity-select"
-                        >
-                          <option value="">Select commodity...</option>
-                          {commodities.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                          ))}
-                        </select>
-                        <input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updatePOItem(idx, 'quantity', parseInt(e.target.value) || 0)}
-                          placeholder="Qty"
-                          min="1"
-                          className="qty-input"
-                        />
-                        <input
-                          type="number"
-                          value={item.unitPrice}
-                          onChange={(e) => updatePOItem(idx, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          placeholder="Unit Price"
-                          step="0.01"
-                          className="price-input"
-                        />
-                        <span className="item-total">${(item.quantity * item.unitPrice).toFixed(2)}</span>
-                        <button className="btn-remove" onClick={() => removePOItem(idx)}>×</button>
-                      </div>
-                    ))}
-                    <div className="po-total">
-                      <strong>Total: ${newPO.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toFixed(2)}</strong>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label>Notes</label>
-                <textarea
-                  value={newPO.notes}
-                  onChange={(e) => setNewPO({ ...newPO, notes: e.target.value })}
-                  rows={2}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowPOModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleCreatePO}>Create PO</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PO Detail Modal */}
-      {selectedPO && (
-        <div className="modal-overlay">
-          <div className="modal po-detail-modal">
-            <div className="modal-header">
-              <h3>Purchase Order: {selectedPO.poNumber}</h3>
-              <button className="modal-close" onClick={() => setSelectedPO(null)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="po-detail-grid">
-                <div className="detail-item">
-                  <label>Status</label>
-                  <span className={`status-badge ${getStatusBadgeClass(selectedPO.status)}`}>{selectedPO.status}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Supplier</label>
-                  <span>{selectedPO.supplierName}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Warehouse</label>
-                  <span>{selectedPO.warehouseName} ({selectedPO.warehouseCode})</span>
-                </div>
-                <div className="detail-item">
-                  <label>Order Date</label>
-                  <span>{formatDateTime(selectedPO.orderDate, { short: true })}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Expected Delivery</label>
-                  <span>{formatDateTime(selectedPO.expectedDeliveryDate, { dateOnly: true, short: true })}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Total Amount</label>
-                  <span><strong>${selectedPO.totalAmount.toLocaleString()}</strong></span>
-                </div>
-              </div>
-
-              {selectedPO.items && selectedPO.items.length > 0 && (
-                <div className="po-detail-items">
-                  <h4>Items</h4>
-                  <table className="items-table">
-                    <thead>
-                      <tr>
-                        <th>Commodity</th>
-                        <th>Ordered</th>
-                        <th>Received</th>
-                        <th>Unit Price</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedPO.items.map(item => (
-                        <tr key={item.id}>
-                          <td>{item.commodityName}</td>
-                          <td>{item.quantityOrdered} {item.commodityUnit}</td>
-                          <td>{item.quantityReceived} {item.commodityUnit}</td>
-                          <td>${item.unitPrice.toFixed(2)}</td>
-                          <td>${item.totalPrice.toFixed(2)}</td>
-                          <td><span className={`status-badge ${getStatusBadgeClass(item.status)}`}>{item.status}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {selectedPO.notes && (
-                <div className="po-notes">
-                  <label>Notes</label>
-                  <p>{selectedPO.notes}</p>
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              {selectedPO.status === 'Draft' && (
-                <button className="btn btn-primary" onClick={() => handleUpdatePOStatus(selectedPO.id, 'Submitted')}>Submit PO</button>
-              )}
-              {selectedPO.status === 'Submitted' && (
-                <button className="btn btn-primary" onClick={() => handleUpdatePOStatus(selectedPO.id, 'Confirmed')}>Confirm PO</button>
-              )}
-              {selectedPO.status === 'Confirmed' && (
-                <button className="btn btn-primary" onClick={() => handleUpdatePOStatus(selectedPO.id, 'Shipped')}>Mark Shipped</button>
-              )}
-              <button className="btn btn-secondary" onClick={() => setSelectedPO(null)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
