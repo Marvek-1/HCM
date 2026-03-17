@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Metadata } from "next";
 import { MetricCard } from "@/components/MetricCard";
 import { ChartCard } from "@/components/ChartCard";
 import { AreaChart, PieChart, LineChart } from "@/components/charts";
